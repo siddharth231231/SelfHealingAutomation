@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+<suite name="All Test Suite">
+    <listeners>
+        <listener class-name="listeners.SelfHealingListener"/>
+    </listeners>
+
+    <test verbose="2" preserve-order="true" name="/Users/siddharth/Documents/UnifiedBussinessPortal/WebAutomation">
+        <classes>
+            <class name="tests.LoginTest"/>
+        </classes>
+    </test>
+</suite>
+
+
