@@ -8,7 +8,7 @@ import selfhealing.dom.DomContext;
 public class AgentRestClient {
 
     private static final String AGENT_URL =
-            "http://localhost:8080/agent/fix-xpath";
+            "http://localhost:8081/agent/fix-xpath";
 
     private static final RestTemplate restTemplate = new RestTemplate();
     private static final ObjectMapper mapper = new ObjectMapper();
