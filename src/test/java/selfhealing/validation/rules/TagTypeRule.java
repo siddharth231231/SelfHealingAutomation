@@ -3,9 +3,9 @@ package selfhealing.validation.rules;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import selfhealing.validation.ValidationResult;
 import selfhealing.validation.ValidationRule;
 
+import java.util.List;
 import java.util.Set;
 
 public class TagTypeRule implements ValidationRule {
@@ -14,16 +14,30 @@ public class TagTypeRule implements ValidationRule {
             Set.of("input", "button", "select", "textarea", "a");
 
     @Override
-    public ValidationResult validate(WebDriver driver, String xpath) {
-        WebElement element = driver.findElement(By.xpath(xpath));
-        String tag = element.getTagName();
+    public String getName() {
+        return "Tag Type Rule";
+    }
 
-        if (!ALLOWED_TAGS.contains(tag)) {
-            return ValidationResult.failure(
-                    "Unexpected tag type: " + tag
-            );
+    @Override
+    public int getWeight() {
+        return 15;  // Medium importance
+    }
+
+    @Override
+    public int validate(WebDriver driver, String xpath) {
+
+        List<WebElement> elements = driver.findElements(By.xpath(xpath));
+
+        if (elements.isEmpty()) {
+            return 0;
         }
 
-        return ValidationResult.success();
+        String tag = elements.get(0).getTagName();
+
+        if (ALLOWED_TAGS.contains(tag)) {
+            return 100;
+        }
+
+        return 40;  // Partial score if tag unexpected
     }
 }

@@ -1,26 +1,44 @@
 package selfhealing.validation.rules;
 
 import org.openqa.selenium.WebDriver;
-import selfhealing.validation.ValidationResult;
 import selfhealing.validation.ValidationRule;
 
 public class AttributeStabilityRule implements ValidationRule {
 
     @Override
-    public ValidationResult validate(WebDriver driver, String xpath) {
+    public String getName() {
+        return "Attribute Stability Rule";
+    }
 
+    @Override
+    public int getWeight() {
+        return 15;  // Medium importance
+    }
+
+    @Override
+    public int validate(WebDriver driver, String xpath) {
+
+        if (xpath == null || xpath.isEmpty()) {
+            return 0;
+        }
+
+        int score = 100;
+
+        // Penalize unstable class usage (e.g., class with numbers)
         if (xpath.contains("@class") && xpath.matches(".*\\d+.*")) {
-            return ValidationResult.failure(
-                    "XPath relies on unstable class attribute"
-            );
+            score -= 40;
         }
 
+        // Penalize dynamic IDs (ids containing numbers)
         if (xpath.contains("@id") && xpath.matches(".*\\d+.*")) {
-            return ValidationResult.failure(
-                    "XPath relies on dynamic id"
-            );
+            score -= 40;
         }
 
-        return ValidationResult.success();
+        // If heavily unstable → fail completely
+        if (score <= 20) {
+            return 0;
+        }
+
+        return score;
     }
 }

@@ -3,19 +3,31 @@ package selfhealing.validation.rules;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import selfhealing.validation.ValidationResult;
 import selfhealing.validation.ValidationRule;
+
+import java.util.List;
 
 public class VisibilityRule implements ValidationRule {
 
     @Override
-    public ValidationResult validate(WebDriver driver, String xpath) {
-        WebElement element = driver.findElement(By.xpath(xpath));
+    public String getName() {
+        return "Visibility Rule";
+    }
 
-        if (!element.isDisplayed()) {
-            return ValidationResult.failure("Element is not visible");
+    @Override
+    public int getWeight() {
+        return 20;
+    }
+
+    @Override
+    public int validate(WebDriver driver, String xpath) {
+
+        List<WebElement> elements = driver.findElements(By.xpath(xpath));
+
+        if (elements.isEmpty()) {
+            return 0;
         }
 
-        return ValidationResult.success();
+        return elements.get(0).isDisplayed() ? 100 : 40;
     }
 }

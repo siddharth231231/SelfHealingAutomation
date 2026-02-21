@@ -1,28 +1,29 @@
 package selfhealing.validation;
 
+import java.util.Map;
+
 public class ValidationResult {
 
     private boolean valid;
-    private String failureReason;
+    private int totalScore;
+    private Map<String, Integer> ruleScores;
 
-    private ValidationResult(boolean valid, String failureReason) {
+    public ValidationResult(boolean valid, int totalScore,
+                            Map<String, Integer> ruleScores) {
         this.valid = valid;
-        this.failureReason = failureReason;
-    }
-
-    public static ValidationResult success() {
-        return new ValidationResult(true, null);
-    }
-
-    public static ValidationResult failure(String reason) {
-        return new ValidationResult(false, reason);
+        this.totalScore = totalScore;
+        this.ruleScores = ruleScores;
     }
 
     public boolean isValid() {
         return valid;
     }
 
-    public String getFailureReason() {
-        return failureReason;
+    public int getTotalScore() {
+        return totalScore;
+    }
+
+    public Map<String, Integer> getRuleScores() {
+        return ruleScores;
     }
 }
