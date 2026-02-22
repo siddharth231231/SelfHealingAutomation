@@ -4,230 +4,159 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "locator_metadata")
+@Table(
+        name = "locator_metadata",
+        uniqueConstraints = @UniqueConstraint(
+                columnNames = {"locator_name", "page_url"}
+        )
+)
 public class LocatorMetaEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    /* ================= DOM STRUCTURE ================= */
-
-    @Column(name = "ancestor_dom_path", columnDefinition = "TINYTEXT")
-    private String ancestorDomPath;
-
-    @Column(name = "ancestor_tags", columnDefinition = "TINYTEXT")
-    private String ancestorTags;
-
-    @Column(name = "clean_parent_dom", columnDefinition = "TINYTEXT")
-    private String cleanParentDom;
-
-    @Column(name = "parent_attributes", columnDefinition = "TINYTEXT")
-    private String parentAttributes;
-
-    @Column(name = "sibling_context", columnDefinition = "TINYTEXT")
-    private String siblingContext;
-
-    /* ================= PAGE INFO ================= */
-
-    @Column(name = "page_name")
-    private String pageName;
-
-    @Column(name = "page_title", length = 500)
-    private String pageTitle;
-
-    @Column(name = "page_uri", columnDefinition = "TINYTEXT")
-    private String pageUri;
-
-    /* ================= LOCATOR INFO ================= */
+    // ===============================
+    // Locator Identity
+    // ===============================
 
     @Column(name = "locator_name", nullable = false)
     private String locatorName;
 
-    @Column(name = "locator_type", nullable = false, length = 50)
-    private String locatorType;
+    @Column(name = "original_locator", columnDefinition = "TEXT", nullable = false)
+    private String originalLocator;
 
-    @Column(name = "working_xpath", nullable = false, columnDefinition = "TINYTEXT")
-    private String workingXpath;
+    @Column(name = "current_active_locator", columnDefinition = "TEXT")
+    private String currentActiveLocator;
 
-    /* ================= HEALING SIGNALS ================= */
+    // ===============================
+    // Multiple Locator Anchors
+    // ===============================
 
-    @Column(name = "dom_hash", length = 128)
+    @Column(name = "relative_xpath", columnDefinition = "TEXT")
+    private String relativeXpath;
+
+    @Column(name = "absolute_xpath", columnDefinition = "TEXT")
+    private String absoluteXpath;
+
+    @Column(name = "css_selector", columnDefinition = "TEXT")
+    private String cssSelector;
+
+    @Column(name = "parent_xpath_chain", columnDefinition = "LONGTEXT")
+    private String parentXpathChain;
+
+    @Column(name = "sibling_xpath_cluster", columnDefinition = "LONGTEXT")
+    private String siblingXpathCluster;
+
+    // ===============================
+    // Page Context
+    // ===============================
+
+    @Column(name = "page_url", columnDefinition = "TEXT")
+    private String pageUrl;
+
+    @Column(name = "page_title")
+    private String pageTitle;
+
+    // ===============================
+    // DOM Snapshot (Healenium Style)
+    // ===============================
+
+    @Column(name = "dom_snapshot", columnDefinition = "LONGTEXT")
+    private String domSnapshot;
+
+    @Column(name = "dom_hash", length = 255)
     private String domHash;
 
-    @Column(name = "node_depth")
-    private Integer nodeDepth;
+    // ===============================
+    // Healing Metadata
+    // ===============================
 
-    @Column(name = "has_text")
-    private Boolean hasText;
+    @Column(name = "locator_version")
+    private Integer locatorVersion = 1;
 
-    @Column(name = "text_content", columnDefinition = "TINYTEXT")
-    private String textContent;
+    @Column(name = "heal_count")
+    private Integer healCount = 0;
 
-    /* ================= AUDIT ================= */
+    @Column(name = "last_similarity_score")
+    private Double lastSimilarityScore;
 
-    @Column(name = "created_at", nullable = false)
+    // ===============================
+    // Audit Fields
+    // ===============================
+
+    @Column(name = "created_at")
     private LocalDateTime createdAt;
 
-    @Column(name = "updated_at", nullable = false)
+    @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    /* ================= JPA HOOKS ================= */
+    // ===============================
+    // Lifecycle Hooks
+    // ===============================
 
     @PrePersist
-    public void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
     }
 
     @PreUpdate
-    public void onUpdate() {
-        updatedAt = LocalDateTime.now();
+    protected void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
     }
 
-    /* ================= GETTERS / SETTERS ================= */
+    // ===============================
+    // Getters & Setters
+    // ===============================
 
-    public Long getId() {
-        return id;
-    }
+    public Long getId() { return id; }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    public String getLocatorName() { return locatorName; }
+    public void setLocatorName(String locatorName) { this.locatorName = locatorName; }
 
-    public String getAncestorDomPath() {
-        return ancestorDomPath;
-    }
+    public String getOriginalLocator() { return originalLocator; }
+    public void setOriginalLocator(String originalLocator) { this.originalLocator = originalLocator; }
 
-    public void setAncestorDomPath(String ancestorDomPath) {
-        this.ancestorDomPath = ancestorDomPath;
-    }
+    public String getCurrentActiveLocator() { return currentActiveLocator; }
+    public void setCurrentActiveLocator(String currentActiveLocator) { this.currentActiveLocator = currentActiveLocator; }
 
-    public String getAncestorTags() {
-        return ancestorTags;
-    }
+    public String getRelativeXpath() { return relativeXpath; }
+    public void setRelativeXpath(String relativeXpath) { this.relativeXpath = relativeXpath; }
 
-    public void setAncestorTags(String ancestorTags) {
-        this.ancestorTags = ancestorTags;
-    }
+    public String getAbsoluteXpath() { return absoluteXpath; }
+    public void setAbsoluteXpath(String absoluteXpath) { this.absoluteXpath = absoluteXpath; }
 
-    public String getCleanParentDom() {
-        return cleanParentDom;
-    }
+    public String getCssSelector() { return cssSelector; }
+    public void setCssSelector(String cssSelector) { this.cssSelector = cssSelector; }
 
-    public void setCleanParentDom(String cleanParentDom) {
-        this.cleanParentDom = cleanParentDom;
-    }
+    public String getParentXpathChain() { return parentXpathChain; }
+    public void setParentXpathChain(String parentXpathChain) { this.parentXpathChain = parentXpathChain; }
 
-    public String getParentAttributes() {
-        return parentAttributes;
-    }
+    public String getSiblingXpathCluster() { return siblingXpathCluster; }
+    public void setSiblingXpathCluster(String siblingXpathCluster) { this.siblingXpathCluster = siblingXpathCluster; }
 
-    public void setParentAttributes(String parentAttributes) {
-        this.parentAttributes = parentAttributes;
-    }
+    public String getPageUrl() { return pageUrl; }
+    public void setPageUrl(String pageUrl) { this.pageUrl = pageUrl; }
 
-    public String getSiblingContext() {
-        return siblingContext;
-    }
+    public String getPageTitle() { return pageTitle; }
+    public void setPageTitle(String pageTitle) { this.pageTitle = pageTitle; }
 
-    public void setSiblingContext(String siblingContext) {
-        this.siblingContext = siblingContext;
-    }
+    public String getDomSnapshot() { return domSnapshot; }
+    public void setDomSnapshot(String domSnapshot) { this.domSnapshot = domSnapshot; }
 
-    public String getPageName() {
-        return pageName;
-    }
+    public String getDomHash() { return domHash; }
+    public void setDomHash(String domHash) { this.domHash = domHash; }
 
-    public void setPageName(String pageName) {
-        this.pageName = pageName;
-    }
+    public Integer getLocatorVersion() { return locatorVersion; }
+    public void setLocatorVersion(Integer locatorVersion) { this.locatorVersion = locatorVersion; }
 
-    public String getPageTitle() {
-        return pageTitle;
-    }
+    public Integer getHealCount() { return healCount; }
+    public void setHealCount(Integer healCount) { this.healCount = healCount; }
 
-    public void setPageTitle(String pageTitle) {
-        this.pageTitle = pageTitle;
-    }
+    public Double getLastSimilarityScore() { return lastSimilarityScore; }
+    public void setLastSimilarityScore(Double lastSimilarityScore) { this.lastSimilarityScore = lastSimilarityScore; }
 
-    public String getPageUri() {
-        return pageUri;
-    }
-
-    public void setPageUri(String pageUri) {
-        this.pageUri = pageUri;
-    }
-
-    public String getLocatorName() {
-        return locatorName;
-    }
-
-    public void setLocatorName(String locatorName) {
-        this.locatorName = locatorName;
-    }
-
-    public String getLocatorType() {
-        return locatorType;
-    }
-
-    public void setLocatorType(String locatorType) {
-        this.locatorType = locatorType;
-    }
-
-    public String getWorkingXpath() {
-        return workingXpath;
-    }
-
-    public void setWorkingXpath(String workingXpath) {
-        this.workingXpath = workingXpath;
-    }
-
-    public String getDomHash() {
-        return domHash;
-    }
-
-    public void setDomHash(String domHash) {
-        this.domHash = domHash;
-    }
-
-    public Integer getNodeDepth() {
-        return nodeDepth;
-    }
-
-    public void setNodeDepth(Integer nodeDepth) {
-        this.nodeDepth = nodeDepth;
-    }
-
-    public Boolean getHasText() {
-        return hasText;
-    }
-
-    public void setHasText(Boolean hasText) {
-        this.hasText = hasText;
-    }
-
-    public String getTextContent() {
-        return textContent;
-    }
-
-    public void setTextContent(String textContent) {
-        this.textContent = textContent;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
-    }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
 }

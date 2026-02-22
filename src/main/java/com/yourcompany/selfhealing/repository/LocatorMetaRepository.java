@@ -11,19 +11,42 @@ public interface LocatorMetaRepository
 
     /* ================= CORE LOOKUPS ================= */
 
-    Optional<LocatorMetaEntity> findByPageNameAndLocatorName(
-            String pageName,
-            String locatorName);
+    // Primary lookup during healing
+    Optional<LocatorMetaEntity> findByLocatorName(String locatorName);
+
+    // If locator name can exist on multiple pages
+    Optional<LocatorMetaEntity> findByPageUrlAndLocatorName(
+            String pageUrl,
+            String locatorName
+    );
+
+    // Get all locators from a specific page
+    List<LocatorMetaEntity> findByPageUrl(String pageUrl);
+
+    /* ================= XPATH SUPPORT ================= */
+
+    Optional<LocatorMetaEntity> findByRelativeXpath(String relativeXpath);
+
+    Optional<LocatorMetaEntity> findByAbsoluteXpath(String absoluteXpath);
+
+    /* ================= DOM HASH SUPPORT ================= */
 
     Optional<LocatorMetaEntity> findByDomHash(String domHash);
 
-    /* ================= HEALING SUPPORT ================= */
+    Optional<LocatorMetaEntity> findByPageUrlAndDomHash(
+            String pageUrl,
+            String domHash
+    );
 
-    List<LocatorMetaEntity> findByPageName(String pageName);
+    /* ================= VERSIONING SUPPORT ================= */
 
-    List<LocatorMetaEntity> findByLocatorType(String locatorType);
+    // Get latest version of a locator
+    Optional<LocatorMetaEntity> findTopByLocatorNameOrderByLocatorVersionDesc(
+            String locatorName
+    );
 
-    List<LocatorMetaEntity> findByNodeDepthLessThan(Integer depth);
+    /* ================= HEAL ANALYTICS ================= */
 
-    List<LocatorMetaEntity> findByHasText(Boolean hasText);
+    // Get elements healed more than X times (useful for debugging)
+    List<LocatorMetaEntity> findByHealCountGreaterThan(Integer count);
 }
