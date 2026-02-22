@@ -28,6 +28,7 @@ public class SelfHealingEngine {
          * 2️⃣ Extract clean XPath
          * ------------------------------------------------- */
         String brokenXpath = LocatorExtractor.extract(exception);
+        log(exception.getMessage());
 
         if (brokenXpath == null || brokenXpath.trim().isEmpty()) {
             log("Unable to extract clean XPath from exception.");
@@ -83,10 +84,19 @@ public class SelfHealingEngine {
         ValidationResult validationResult =
                 ValidationEngine.validate(driver, healedXpath);
 
+        log("Validation Score: " + validationResult.getTotalScore() + "%");
+
+        validationResult.getRuleScores()
+                .forEach((rule, score) ->
+                        log(rule + " -> " + score + "%"));
+
         if (!validationResult.isValid()) {
-            log("Validation failed: " + validationResult.getFailureReason());
+
+            log("❌ XPath rejected (score below 80%)");
             return;
         }
+
+        log("✅ XPath accepted (above 80%)");
 
         /* -------------------------------------------------
          * 7️⃣ Healing success
@@ -100,9 +110,7 @@ public class SelfHealingEngine {
      * ================================================= */
 
     private static String extractTagFromXpath(String xpath) {
-        // Examples:
-        // //a[text()='Gmail'] -> a
-        // //button[@id='submit'] -> button
+
         try {
             String cleaned = xpath.replaceAll("^//+", "");
             return cleaned.split("[\\[/]")[0];

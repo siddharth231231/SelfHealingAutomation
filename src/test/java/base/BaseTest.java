@@ -1,8 +1,6 @@
 package base;
 
 import com.yourcompany.selfhealing.SelfHealingApplication;
-import config.FrameworkConfig;
-import io.github.bonigarcia.wdm.WebDriverManager;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.springframework.boot.SpringApplication;
@@ -35,22 +33,24 @@ public class BaseTest {
     @BeforeMethod
     public void setup() {
 
-        FrameworkConfig.load();
+        WebDriver webDriver = new ChromeDriver();  // create normal driver
+        driver.set(webDriver);                     // set into ThreadLocal
 
-        WebDriverManager.chromedriver().setup();
-        driver.set(new ChromeDriver());
-        getDriver().manage().window().maximize();
+        webDriver.get("https://www.google.com");
     }
 
     public static WebDriver getDriver() {
         return driver.get();
     }
 
-    @AfterMethod(alwaysRun = true)
+    @AfterMethod
     public void tearDown() {
-        if (getDriver() != null) {
-            getDriver().quit();
-            driver.remove();
+
+        WebDriver webDriver = driver.get();
+
+        if (webDriver != null) {
+            webDriver.quit();
+            driver.remove();   // VERY IMPORTANT for parallel safety
         }
     }
 }

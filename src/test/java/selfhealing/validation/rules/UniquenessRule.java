@@ -3,7 +3,6 @@ package selfhealing.validation.rules;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import selfhealing.validation.ValidationResult;
 import selfhealing.validation.ValidationRule;
 
 import java.util.List;
@@ -11,24 +10,26 @@ import java.util.List;
 public class UniquenessRule implements ValidationRule {
 
     @Override
-    public ValidationResult validate(WebDriver driver, String xpath) {
-        try {
-            List<WebElement> elements = driver.findElements(By.xpath(xpath));
+    public String getName() {
+        return "Uniqueness Rule";
+    }
 
-            if (elements.isEmpty()) {
-                return ValidationResult.failure("XPath does not match any element");
-            }
+    @Override
+    public int getWeight() {
+        return 25;  // 25% importance
+    }
 
-            if (elements.size() > 1) {
-                return ValidationResult.failure(
-                        "XPath is not unique. Matches " + elements.size() + " elements"
-                );
-            }
+    @Override
+    public int validate(WebDriver driver, String xpath) {
 
-            return ValidationResult.success();
+        List<WebElement> elements = driver.findElements(By.xpath(xpath));
 
-        } catch (Exception e) {
-            return ValidationResult.failure("Invalid XPath syntax");
+        if (elements.size() == 1) {
+            return 100;
+        } else if (elements.size() > 1) {
+            return 50;
+        } else {
+            return 0;
         }
     }
 }
