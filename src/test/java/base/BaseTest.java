@@ -1,18 +1,19 @@
 package base;
 
 import com.yourcompany.selfhealing.SelfHealingApplication;
+import com.yourcompany.selfhealing.service.LocatorMetaService;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.springframework.boot.SpringApplication;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.BeforeSuite;
+import org.testng.annotations.*;
 
 public class BaseTest {
 
     private static ThreadLocal<WebDriver> driver = new ThreadLocal<>();
     private static ConfigurableApplicationContext springContext;
+
+    protected LocatorMetaService locatorMetaService;
 
     /* ================= SPRING BOOT ================= */
 
@@ -24,33 +25,31 @@ public class BaseTest {
         }
     }
 
-    public static <T> T getBean(Class<T> clazz) {
-        return springContext.getBean(clazz);
-    }
-
-    /* ================= WEBDRIVER ================= */
-
-    @BeforeMethod
-    public void setup() {
-
-        WebDriver webDriver = new ChromeDriver();  // create normal driver
-        driver.set(webDriver);                     // set into ThreadLocal
-
-        webDriver.get("https://www.google.com");
+    @BeforeClass(alwaysRun = true)
+    public void initService() {
+        locatorMetaService = springContext.getBean(LocatorMetaService.class);
+        System.out.println("LocatorMetaService initialized");
     }
 
     public static WebDriver getDriver() {
         return driver.get();
     }
 
-    @AfterMethod
+    /* ================= WEBDRIVER ================= */
+
+    @BeforeMethod(alwaysRun = true)
+    public void setup() {
+        WebDriver webDriver = new ChromeDriver();
+        driver.set(webDriver);
+        webDriver.get("https://www.google.com");
+    }
+
+    @AfterMethod(alwaysRun = true)
     public void tearDown() {
-
         WebDriver webDriver = driver.get();
-
         if (webDriver != null) {
             webDriver.quit();
-            driver.remove();   // VERY IMPORTANT for parallel safety
+            driver.remove();
         }
     }
 }

@@ -157,6 +157,31 @@ public class LocatorMetaEntity {
     public Double getLastSimilarityScore() { return lastSimilarityScore; }
     public void setLastSimilarityScore(Double lastSimilarityScore) { this.lastSimilarityScore = lastSimilarityScore; }
 
+
+    @Override
+    public String toString() {
+        return "LocatorMetaEntity{" +
+                "locatorVersion=" + locatorVersion +
+                ", id=" + id +
+                ", locatorName='" + locatorName + '\'' +
+                ", originalLocator='" + originalLocator + '\'' +
+                ", currentActiveLocator='" + currentActiveLocator + '\'' +
+                ", relativeXpath='" + relativeXpath + '\'' +
+                ", absoluteXpath='" + absoluteXpath + '\'' +
+                ", cssSelector='" + cssSelector + '\'' +
+                ", parentXpathChain='" + parentXpathChain + '\'' +
+                ", siblingXpathCluster='" + siblingXpathCluster + '\'' +
+                ", pageUrl='" + pageUrl + '\'' +
+                ", pageTitle='" + pageTitle + '\'' +
+                ", domSnapshot='" + domSnapshot + '\'' +
+                ", domHash='" + domHash + '\'' +
+                ", healCount=" + healCount +
+                ", lastSimilarityScore=" + lastSimilarityScore +
+                ", createdAt=" + createdAt +
+                ", updatedAt=" + updatedAt +
+                '}';
+    }
+
     public LocalDateTime getCreatedAt() { return createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }
 }

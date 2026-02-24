@@ -1,23 +1,26 @@
 package tests;
 
 import base.BaseTest;
-import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.chrome.ChromeDriver;
 import org.testng.annotations.Test;
-import tests.pages.BasePage;
 import tests.pages.LoginPage;
 
 public class LoginTest extends BaseTest {
-    WebDriver driver;
+
     @Test
-    public void loginTest() throws InterruptedException {
+    public void loginTest() {
 
-        driver = new ChromeDriver();
-        driver.get("https://www.google.com");
+        WebDriver driver = getDriver();   // ✅ use BaseTest driver
 
-        LoginPage loginPage = new LoginPage(driver);
+        LoginPage loginPage =
+                new LoginPage(driver, locatorMetaService);
 
         loginPage.clickGmail();
+
+
+
+
+
+
     }
 }
