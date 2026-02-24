@@ -18,23 +18,28 @@ public class LocatorMetaService {
         this.locatorRepo = locatorRepo;
     }
 
-    /* ================= CREATE ================= */
+    /* =======================================================
+       CREATE
+       ======================================================= */
 
     public LocatorMetaEntity saveIfNotExists(LocatorMetaEntity locator) {
 
-        Optional<LocatorMetaEntity> existing =
-                locatorRepo.findByPageUrlAndLocatorName(
+        return locatorRepo
+                .findByPageUrlAndLocatorName(
                         locator.getPageUrl(),
-                        locator.getLocatorName());
-
-        return existing.orElseGet(() -> locatorRepo.save(locator));
+                        locator.getLocatorName()
+                )
+                .orElseGet(() -> locatorRepo.save(locator));
     }
 
-    /* ================= LOOKUPS ================= */
+    /* =======================================================
+       LOOKUPS
+       ======================================================= */
 
     public Optional<LocatorMetaEntity> findByLocatorName(String locatorName) {
         return locatorRepo.findByLocatorName(locatorName);
     }
+
 
     public Optional<LocatorMetaEntity> findByPageUrlAndName(
             String pageUrl,
@@ -55,10 +60,12 @@ public class LocatorMetaService {
         return locatorRepo.findById(id);
     }
 
-    /* ================= SELF-HEALING UPDATE ================= */
+    /* =======================================================
+       SELF-HEALING UPDATE
+       ======================================================= */
 
     /**
-     * Called when healing succeeds.
+     * Called only when healing is successful.
      */
     public void updateAfterHealing(
             String pageUrl,
@@ -71,44 +78,73 @@ public class LocatorMetaService {
         LocatorMetaEntity locator =
                 locatorRepo.findByPageUrlAndLocatorName(pageUrl, locatorName)
                         .orElseThrow(() ->
-                                new RuntimeException("Locator not found: " + locatorName));
+                                new IllegalStateException(
+                                        "Locator not found: " + locatorName
+                                ));
 
-        // Update healed locator
-        locator.setCurrentActiveLocator(newXpath);
+        // Avoid unnecessary update
+        if (newXpath != null && !newXpath.equals(locator.getCurrentActiveLocator())) {
+            locator.setCurrentActiveLocator(newXpath);
+        }
 
-        // Update snapshot + hash
-        locator.setDomSnapshot(newDomSnapshot);
-        locator.setDomHash(newDomHash);
+        if (newDomSnapshot != null) {
+            locator.setDomSnapshot(newDomSnapshot);
+        }
 
-        // Increment version
-        locator.setLocatorVersion(locator.getLocatorVersion() + 1);
+        if (newDomHash != null) {
+            locator.setDomHash(newDomHash);
+        }
 
-        // Increment heal count
-        locator.setHealCount(locator.getHealCount() + 1);
+        // Safe increment
+        locator.setLocatorVersion(
+                locator.getLocatorVersion() == null
+                        ? 1
+                        : locator.getLocatorVersion() + 1
+        );
 
-        // Save similarity score
+        locator.setHealCount(
+                locator.getHealCount() == null
+                        ? 1
+                        : locator.getHealCount() + 1
+        );
+
         locator.setLastSimilarityScore(similarityScore);
 
         locatorRepo.save(locator);
     }
 
-    /* ================= MANUAL UPDATE ================= */
+    /* =======================================================
+       SIMPLE ACTIVE LOCATOR UPDATE
+       ======================================================= */
 
-    public void updateActiveLocator(String pageUrl, String locatorName, String newXpath) {
+    public void updateActiveLocator(
+            String pageUrl,
+            String locatorName,
+            String newXpath) {
 
         LocatorMetaEntity locator =
                 locatorRepo.findByPageUrlAndLocatorName(pageUrl, locatorName)
                         .orElseThrow(() ->
-                                new RuntimeException("Locator not found: " + locatorName));
+                                new IllegalStateException(
+                                        "Locator not found: " + locatorName
+                                ));
 
         locator.setCurrentActiveLocator(newXpath);
 
         locatorRepo.save(locator);
     }
 
-    /* ================= ANALYTICS SUPPORT ================= */
+    /* =======================================================
+       ANALYTICS
+       ======================================================= */
 
     public List<LocatorMetaEntity> findFrequentlyHealed(Integer minHealCount) {
         return locatorRepo.findByHealCountGreaterThan(minHealCount);
+    }
+
+    public boolean exists(String pageUrl, String locatorName) {
+        return locatorRepo
+                .findByPageUrlAndLocatorName(pageUrl, locatorName)
+                .isPresent();
     }
 }
