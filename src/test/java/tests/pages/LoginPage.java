@@ -9,9 +9,12 @@ public class LoginPage extends BasePage {
 
     /* ================= LOCATORS ================= */
 
-    private final NamedBy loginBtn =
-            new NamedBy("Obj_Orangehrm_username_textbox",
-                    By.xpath("//input[@name='name']"));
+    private final NamedBy Obj_Vodafone_OurCompanyBtn =
+            new NamedBy("Obj_Orangehrm_login_button",
+                    By.xpath("//button[@type='sub']"));
+
+
+
 
     /* ================= CONSTRUCTOR ================= */
 
@@ -23,7 +26,8 @@ public class LoginPage extends BasePage {
     /* ================= PAGE ACTIONS ================= */
 
     public void loginTestOrangeHRM() {
-        find(loginBtn).click();
+
+        find(Obj_Vodafone_OurCompanyBtn).click();
     }
 
 }
