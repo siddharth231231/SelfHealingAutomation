@@ -15,7 +15,7 @@ public class LoginTest extends BaseTest {
         LoginPage loginPage =
                 new LoginPage(driver, locatorMetaService);
 
-        loginPage.clickGmail();
+        loginPage.loginTestOrangeHRM();
 
 
 

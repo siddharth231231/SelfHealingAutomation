@@ -12,7 +12,7 @@ public class AttributeStabilityRule implements ValidationRule {
 
     @Override
     public int getWeight() {
-        return 15;  // Medium importance
+        return 15; // Medium importance
     }
 
     @Override
@@ -24,13 +24,14 @@ public class AttributeStabilityRule implements ValidationRule {
 
         int score = 100;
 
-        // Penalize unstable class usage (e.g., class with numbers)
-        if (xpath.contains("@class") && xpath.matches(".*\\d+.*")) {
+        // Penalize unstable class usage (e.g., class with long random numbers)
+        if (xpath.contains("@class") && xpath.matches(".*@[a-zA-Z-]*class[a-zA-Z-]*=.*\\d{4,}.*")) {
             score -= 40;
         }
 
-        // Penalize dynamic IDs (ids containing numbers)
-        if (xpath.contains("@id") && xpath.matches(".*\\d+.*")) {
+        // Penalize dynamic IDs (e.g., id with long random numbers like
+        // id="ext-gen1234")
+        if (xpath.contains("@id") && xpath.matches(".*@[a-zA-Z-]*id[a-zA-Z-]*=.*\\d{4,}.*")) {
             score -= 40;
         }
 

@@ -3,32 +3,28 @@ package selfhealing.agent;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.*;
 import org.springframework.web.client.RestTemplate;
-import selfhealing.dom.DomContext;
+import selfhealing.context.SelfHealingContext;
 
 public class AgentRestClient {
 
-    private static final String AGENT_URL =
-            "http://localhost:8081/agent/fix-xpath";
+    private static final String AGENT_URL = "http://localhost:8081/agent/fix-xpath";
 
     private static final RestTemplate restTemplate = new RestTemplate();
     private static final ObjectMapper mapper = new ObjectMapper();
 
-    public static String requestHealing(DomContext domContext) {
+    public static String requestHealing(SelfHealingContext context) {
 
         try {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
 
-            HttpEntity<DomContext> request =
-                    new HttpEntity<>(domContext, headers);
+            HttpEntity<SelfHealingContext> request = new HttpEntity<>(context, headers);
 
-            ResponseEntity<String> response =
-                    restTemplate.exchange(
-                            AGENT_URL,
-                            HttpMethod.POST,
-                            request,
-                            String.class
-                    );
+            ResponseEntity<String> response = restTemplate.exchange(
+                    AGENT_URL,
+                    HttpMethod.POST,
+                    request,
+                    String.class);
 
             return response.getBody();
 

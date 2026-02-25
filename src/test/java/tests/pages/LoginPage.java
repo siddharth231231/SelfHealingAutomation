@@ -9,9 +9,9 @@ public class LoginPage extends BasePage {
 
     /* ================= LOCATORS ================= */
 
-    private final NamedBy gmailLink =
-            new NamedBy("Obj_GmailBtn_Navbar",
-                    By.xpath("//a[@aria-label='Gmail and save']"));
+    private final NamedBy loginBtn =
+            new NamedBy("Obj_Orangehrm_username_textbox",
+                    By.xpath("//input[@name='name']"));
 
     /* ================= CONSTRUCTOR ================= */
 
@@ -22,8 +22,8 @@ public class LoginPage extends BasePage {
 
     /* ================= PAGE ACTIONS ================= */
 
-    public void clickGmail() {
-        find(gmailLink).click();
+    public void loginTestOrangeHRM() {
+        find(loginBtn).click();
     }
 
 }

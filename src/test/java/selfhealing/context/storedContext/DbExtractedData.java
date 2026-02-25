@@ -24,6 +24,9 @@ public class DbExtractedData {
     private String parentXpathChain;
     private String siblingXpathCluster;
 
+    private String parentDomSnapshot;
+    private String siblingsDomSnapshot;
+
     private String pageUrl;
     private String pageTitle;
 
@@ -73,6 +76,8 @@ public class DbExtractedData {
         data.siblingXpaths = entity.getSiblingXpaths();
         data.parentXpathChain = entity.getParentXpathChain();
         data.siblingXpathCluster = entity.getSiblingXpathCluster();
+        data.parentDomSnapshot = entity.getParentDomSnapshot();
+        data.siblingsDomSnapshot = entity.getSiblingsDomSnapshot();
         data.pageUrl = entity.getPageUrl();
         data.pageTitle = entity.getPageTitle();
         data.domSnapshot = entity.getDomSnapshot();
@@ -100,6 +105,8 @@ public class DbExtractedData {
     public String getSiblingXpaths() { return siblingXpaths; }
     public String getParentXpathChain() { return parentXpathChain; }
     public String getSiblingXpathCluster() { return siblingXpathCluster; }
+    public String getParentDomSnapshot() { return parentDomSnapshot; }
+    public String getSiblingsDomSnapshot() { return siblingsDomSnapshot; }
     public String getPageUrl() { return pageUrl; }
     public String getPageTitle() { return pageTitle; }
     public String getDomSnapshot() { return domSnapshot; }
