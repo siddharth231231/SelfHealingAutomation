@@ -148,6 +148,13 @@ public class LocatorMetaEntity {
     public String getSiblingXpathCluster() { return siblingXpathCluster; }
     public void setSiblingXpathCluster(String siblingXpathCluster) { this.siblingXpathCluster = siblingXpathCluster; }
 
+    // Backward-compatible aliases used by older test/context mappers.
+    public String getParentDomSnapshot() { return parentXpathChain; }
+    public void setParentDomSnapshot(String parentDomSnapshot) { this.parentXpathChain = parentDomSnapshot; }
+
+    public String getSiblingsDomSnapshot() { return siblingXpathCluster; }
+    public void setSiblingsDomSnapshot(String siblingsDomSnapshot) { this.siblingXpathCluster = siblingsDomSnapshot; }
+
     public String getPageUrl() { return pageUrl; }
     public void setPageUrl(String pageUrl) { this.pageUrl = pageUrl; }
 
