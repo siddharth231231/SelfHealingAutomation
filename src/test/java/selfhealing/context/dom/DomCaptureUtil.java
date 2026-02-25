@@ -12,7 +12,8 @@ public class DomCaptureUtil {
         public static DomContext capture(
                         WebDriver driver,
                         DbExtractedData stored,
-                        Throwable exception) {
+                        Throwable exception,
+                        String brokenXpath) {
 
                 DomContext ctx = new DomContext();
 
@@ -32,6 +33,7 @@ public class DomCaptureUtil {
 
                 ctx.setPageUrl(safe(driver.getCurrentUrl()));
                 ctx.setPageTitle(safe(driver.getTitle()));
+                ctx.setBrokenXpath(brokenXpath);
 
                 /*
                  * =====================================================
@@ -92,14 +94,23 @@ public class DomCaptureUtil {
                 ctx.setCssSelectorValid(
                                 cssExists(js, stored.getCssSelector()));
 
+                String activeBrokenXpath = ctx.getBrokenXpath();
+                if (notBlank(activeBrokenXpath)) {
+                        int matchCount = xpathMatchCount(js, activeBrokenXpath);
+                        ctx.setBrokenXpathMatchCount(matchCount);
+                        ctx.setBrokenXpathValid(matchCount > 0);
+                }
+
                 /*
                  * =====================================================
                  * 5️⃣.b Element-level interaction using stored locator
                  * =====================================================
                  */
                 String primaryXpath = firstNotBlank(
+                                stored.getCurrentActiveLocator(),
                                 stored.getRelativeXpath(),
-                                stored.getAbsoluteXpath());
+                                stored.getAbsoluteXpath(),
+                                stored.getOriginalLocator());
 
                 if (notBlank(primaryXpath)) {
 
@@ -355,18 +366,41 @@ public class DomCaptureUtil {
                                                 +
                                                 "for(var i=0;i<nodes.length && i<200;i++){" +
                                                 " var e=nodes[i];" +
-                                                " if(e.innerText && e.innerText.length<50){" +
+                                                " var txt=(e.innerText||'').trim();" +
+                                                " var ph=e.getAttribute('placeholder')||'';" +
+                                                " if(!txt && !ph) continue;" +
+                                                " if(txt.length>80) txt=txt.substring(0,80);" +
+                                                "   var path='';" +
+                                                "   try{" +
+                                                "     var n=e; var seg=[];" +
+                                                "     while(n && n.nodeType===1 && seg.length<12){" +
+                                                "       var idx=1; var sib=n.previousElementSibling;" +
+                                                "       while(sib){ if(sib.tagName===n.tagName) idx++; sib=sib.previousElementSibling; }" +
+                                                "       seg.unshift(n.tagName.toLowerCase()+'['+idx+']');" +
+                                                "       n=n.parentElement;" +
+                                                "     }" +
+                                                "     path='/' + seg.join('/');" +
+                                                "   }catch(ignore){}" +
                                                 "   r.push({" +
                                                 "     tag:e.tagName," +
-                                                "     text:e.innerText," +
+                                                "     text:txt," +
+                                                "     id:e.id," +
+                                                "     name:e.getAttribute('name')," +
                                                 "     role:e.getAttribute('role')," +
-                                                "     aria:e.getAttribute('aria-label')" +
+                                                "     aria:e.getAttribute('aria-label')," +
+                                                "     placeholder:ph," +
+                                                "     xpath:path" +
                                                 "   });" +
-                                                " }" +
                                                 "}" +
                                                 "return r;");
-
-                ctx.setCandidateElements(castToMapList(candidates));
+                List<Map<String, Object>> mappedCandidates = castToMapList(candidates);
+                List<Map<String, Object>> rankedCandidates = rankCandidates(
+                                mappedCandidates,
+                                ctx.getExpectedTag(),
+                                ctx.getExpectedText(),
+                                ctx.getExpectedAttributes());
+                ctx.setCandidateElements(rankedCandidates);
+                ctx.setTopCandidateXpaths(topCandidateXpaths(rankedCandidates, 5));
 
                 /*
                  * =====================================================
@@ -389,15 +423,38 @@ public class DomCaptureUtil {
          */
 
         private static boolean xpathExists(JavascriptExecutor js, String xpath) {
-                if (!notBlank(xpath))
+                String sanitized = selfhealing.context.analysis.BrokenXpathAnalyzer.sanitize(xpath);
+                if (!notBlank(sanitized))
                         return false;
 
-                Object result = js.executeScript(
-                                "return !!document.evaluate(arguments[0],document,null," +
-                                                "XPathResult.FIRST_ORDERED_NODE_TYPE,null).singleNodeValue;",
-                                xpath);
+                try {
+                        Object result = js.executeScript(
+                                        "return !!document.evaluate(arguments[0],document,null," +
+                                                        "XPathResult.FIRST_ORDERED_NODE_TYPE,null).singleNodeValue;",
+                                        sanitized);
+                        return Boolean.TRUE.equals(result);
+                } catch (Exception e) {
+                        return false;
+                }
+        }
 
-                return Boolean.TRUE.equals(result);
+        private static int xpathMatchCount(JavascriptExecutor js, String xpath) {
+                String sanitized = selfhealing.context.analysis.BrokenXpathAnalyzer.sanitize(xpath);
+                if (!notBlank(sanitized))
+                        return 0;
+                try {
+                        Object result = js.executeScript(
+                                        "var snap=document.evaluate(arguments[0],document,null," +
+                                                        "XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,null);" +
+                                                        "return snap ? snap.snapshotLength : 0;",
+                                        sanitized);
+                        if (result instanceof Number n) {
+                                return n.intValue();
+                        }
+                        return parseInt(result != null ? result.toString() : null);
+                } catch (Exception e) {
+                        return 0;
+                }
         }
 
         private static boolean cssExists(JavascriptExecutor js, String css) {
@@ -539,6 +596,89 @@ public class DomCaptureUtil {
                         }
                 }
                 return result;
+        }
+
+        private static List<Map<String, Object>> rankCandidates(
+                        List<Map<String, Object>> candidates,
+                        String expectedTag,
+                        String expectedText,
+                        Map<String, String> expectedAttributes) {
+                if (candidates == null || candidates.isEmpty()) {
+                        return new ArrayList<>();
+                }
+                String tag = safe(expectedTag).toLowerCase();
+                String text = safe(expectedText).toLowerCase();
+                String idAttr = expectedAttributes != null ? safe(expectedAttributes.get("id")).toLowerCase() : "";
+                String nameAttr = expectedAttributes != null ? safe(expectedAttributes.get("name")).toLowerCase() : "";
+                String typeAttr = expectedAttributes != null ? safe(expectedAttributes.get("type")).toLowerCase() : "";
+
+                for (Map<String, Object> candidate : candidates) {
+                        int score = 0;
+                        String candidateTag = safe(asString(candidate.get("tag"))).toLowerCase();
+                        String candidateText = safe(asString(candidate.get("text"))).toLowerCase();
+                        String candidateId = safe(asString(candidate.get("id"))).toLowerCase();
+                        String candidateName = safe(asString(candidate.get("name"))).toLowerCase();
+                        String candidateAria = safe(asString(candidate.get("aria"))).toLowerCase();
+                        String candidateRole = safe(asString(candidate.get("role"))).toLowerCase();
+                        String candidatePlaceholder = safe(asString(candidate.get("placeholder"))).toLowerCase();
+
+                        if (!tag.isEmpty() && candidateTag.equals(tag)) {
+                                score += 30;
+                        }
+                        if (!text.isEmpty() && candidateText.equals(text)) {
+                                score += 30;
+                        } else if (!text.isEmpty() && candidateText.contains(text)) {
+                                score += 15;
+                        }
+                        if (!idAttr.isEmpty() && candidateId.contains(idAttr)) {
+                                score += 20;
+                        }
+                        if (!nameAttr.isEmpty() && candidateName.contains(nameAttr)) {
+                                score += 15;
+                        }
+                        if (!typeAttr.isEmpty() && candidateRole.contains(typeAttr)) {
+                                score += 10;
+                        }
+                        if (!text.isEmpty() && (candidateAria.contains(text) || candidatePlaceholder.contains(text))) {
+                                score += 10;
+                        }
+
+                        candidate.put("score", score);
+                }
+
+                candidates.sort((a, b) -> Integer.compare(asInt(b.get("score")), asInt(a.get("score"))));
+                if (candidates.size() > 40) {
+                        return new ArrayList<>(candidates.subList(0, 40));
+                }
+                return candidates;
+        }
+
+        private static List<String> topCandidateXpaths(List<Map<String, Object>> candidates, int limit) {
+                List<String> top = new ArrayList<>();
+                if (candidates == null || candidates.isEmpty() || limit <= 0) {
+                        return top;
+                }
+                for (Map<String, Object> candidate : candidates) {
+                        if (top.size() >= limit) {
+                                break;
+                        }
+                        String xpath = asString(candidate.get("xpath"));
+                        if (notBlank(xpath)) {
+                                top.add(xpath);
+                        }
+                }
+                return top;
+        }
+
+        private static int asInt(Object input) {
+                if (input instanceof Number n) {
+                        return n.intValue();
+                }
+                return parseInt(input != null ? input.toString() : null);
+        }
+
+        private static String asString(Object input) {
+                return input == null ? null : input.toString();
         }
 
         private static void putIfNotBlank(Map<String, String> map, String key, String value) {

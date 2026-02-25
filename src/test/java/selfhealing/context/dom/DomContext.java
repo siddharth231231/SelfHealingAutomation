@@ -13,8 +13,13 @@ public class DomContext {
     /* ================= FAILURE / INTENT ================= */
 
     private String brokenXpath;
+    private String normalizedBrokenXpath;
     private String expectedTag;
     private String expectedText;
+    private Map<String, String> expectedAttributes;
+    private Integer brokenXpathDepth;
+    private Integer brokenXpathDynamicRiskScore;
+    private List<String> brokenXpathRiskReasons;
     private String failureType;
 
     /* ================= PAGE CONTEXT ================= */
@@ -36,6 +41,8 @@ public class DomContext {
     private boolean relativeXpathValid;
     private boolean absoluteXpathValid;
     private boolean cssSelectorValid;
+    private boolean brokenXpathValid;
+    private Integer brokenXpathMatchCount;
 
     private boolean parentStillExists;
     private boolean siblingClusterStillExists;
@@ -51,6 +58,7 @@ public class DomContext {
     private String closestMatchingText;
     private String nearbyText;
     private List<Map<String, Object>> candidateElements;
+    private List<String> topCandidateXpaths;
 
     /* ================= ATTRIBUTE SIGNALS ================= */
 
@@ -83,11 +91,30 @@ public class DomContext {
     public String getBrokenXpath() { return brokenXpath; }
     public void setBrokenXpath(String brokenXpath) { this.brokenXpath = brokenXpath; }
 
+    public String getNormalizedBrokenXpath() { return normalizedBrokenXpath; }
+    public void setNormalizedBrokenXpath(String normalizedBrokenXpath) { this.normalizedBrokenXpath = normalizedBrokenXpath; }
+
     public String getExpectedTag() { return expectedTag; }
     public void setExpectedTag(String expectedTag) { this.expectedTag = expectedTag; }
 
     public String getExpectedText() { return expectedText; }
     public void setExpectedText(String expectedText) { this.expectedText = expectedText; }
+
+    public Map<String, String> getExpectedAttributes() { return expectedAttributes; }
+    public void setExpectedAttributes(Map<String, String> expectedAttributes) { this.expectedAttributes = expectedAttributes; }
+
+    public Integer getBrokenXpathDepth() { return brokenXpathDepth; }
+    public void setBrokenXpathDepth(Integer brokenXpathDepth) { this.brokenXpathDepth = brokenXpathDepth; }
+
+    public Integer getBrokenXpathDynamicRiskScore() { return brokenXpathDynamicRiskScore; }
+    public void setBrokenXpathDynamicRiskScore(Integer brokenXpathDynamicRiskScore) {
+        this.brokenXpathDynamicRiskScore = brokenXpathDynamicRiskScore;
+    }
+
+    public List<String> getBrokenXpathRiskReasons() { return brokenXpathRiskReasons; }
+    public void setBrokenXpathRiskReasons(List<String> brokenXpathRiskReasons) {
+        this.brokenXpathRiskReasons = brokenXpathRiskReasons;
+    }
 
     public String getFailureType() { return failureType; }
     public void setFailureType(String failureType) { this.failureType = failureType; }
@@ -122,6 +149,12 @@ public class DomContext {
     public boolean isCssSelectorValid() { return cssSelectorValid; }
     public void setCssSelectorValid(boolean cssSelectorValid) { this.cssSelectorValid = cssSelectorValid; }
 
+    public boolean isBrokenXpathValid() { return brokenXpathValid; }
+    public void setBrokenXpathValid(boolean brokenXpathValid) { this.brokenXpathValid = brokenXpathValid; }
+
+    public Integer getBrokenXpathMatchCount() { return brokenXpathMatchCount; }
+    public void setBrokenXpathMatchCount(Integer brokenXpathMatchCount) { this.brokenXpathMatchCount = brokenXpathMatchCount; }
+
     public boolean isParentStillExists() { return parentStillExists; }
     public void setParentStillExists(boolean parentStillExists) { this.parentStillExists = parentStillExists; }
 
@@ -154,6 +187,9 @@ public class DomContext {
     public void setCandidateElements(List<Map<String, Object>> candidateElements) {
         this.candidateElements = candidateElements;
     }
+
+    public List<String> getTopCandidateXpaths() { return topCandidateXpaths; }
+    public void setTopCandidateXpaths(List<String> topCandidateXpaths) { this.topCandidateXpaths = topCandidateXpaths; }
 
     public Map<String, String> getStableAttributes() { return stableAttributes; }
     public void setStableAttributes(Map<String, String> stableAttributes) {
@@ -212,8 +248,11 @@ public class DomContext {
 
         sb.append("\n--- Intent ---\n");
         sb.append("Broken XPath   : ").append(brokenXpath).append("\n");
+        sb.append("Normalized     : ").append(normalizedBrokenXpath).append("\n");
         sb.append("Expected Tag   : ").append(expectedTag).append("\n");
         sb.append("Expected Text  : ").append(expectedText).append("\n");
+        sb.append("XPath Depth    : ").append(brokenXpathDepth).append("\n");
+        sb.append("Dynamic Risk   : ").append(brokenXpathDynamicRiskScore).append("\n");
         sb.append("Failure Type   : ").append(failureType).append("\n");
 
         sb.append("\n--- Page Info ---\n");
@@ -227,6 +266,8 @@ public class DomContext {
         sb.append("Relative OK    : ").append(relativeXpathValid).append("\n");
         sb.append("Absolute OK    : ").append(absoluteXpathValid).append("\n");
         sb.append("CSS OK         : ").append(cssSelectorValid).append("\n");
+        sb.append("Broken XPath OK: ").append(brokenXpathValid).append(" (")
+                .append(brokenXpathMatchCount).append(" matches)\n");
         sb.append("Parent Exists  : ").append(parentStillExists).append("\n");
         sb.append("Sibling Exists : ").append(siblingClusterStillExists).append("\n");
 

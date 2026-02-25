@@ -5,6 +5,7 @@ import com.yourcompany.selfhealing.repository.LocatorMetaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -109,6 +110,26 @@ public class LocatorMetaService {
         );
 
         locator.setLastSimilarityScore(similarityScore);
+        locator.setLastHealedAt(LocalDateTime.now());
+        locator.setLastValidatedAt(LocalDateTime.now());
+        locator.setHealSuccessCount(
+                locator.getHealSuccessCount() == null
+                        ? 1
+                        : locator.getHealSuccessCount() + 1
+        );
+
+        if (similarityScore != null) {
+            Double previousAverage = locator.getAverageValidationScore();
+            Integer previousCount = locator.getHealSuccessCount() != null
+                    ? Math.max(locator.getHealSuccessCount() - 1, 0)
+                    : 0;
+            if (previousAverage == null || previousCount == 0) {
+                locator.setAverageValidationScore(similarityScore);
+            } else {
+                double nextAverage = ((previousAverage * previousCount) + similarityScore) / (previousCount + 1);
+                locator.setAverageValidationScore(nextAverage);
+            }
+        }
 
         locatorRepo.save(locator);
     }

@@ -37,8 +37,13 @@ public class SelfHealingContextBuilder {
          */
         if (live != null) {
             ctx.setBrokenXpath(live.getBrokenXpath());
+            ctx.setNormalizedBrokenXpath(live.getNormalizedBrokenXpath());
             ctx.setExpectedTag(live.getExpectedTag());
             ctx.setExpectedText(live.getExpectedText());
+            ctx.setExpectedAttributes(live.getExpectedAttributes());
+            ctx.setBrokenXpathDepth(live.getBrokenXpathDepth());
+            ctx.setBrokenXpathDynamicRiskScore(live.getBrokenXpathDynamicRiskScore());
+            ctx.setBrokenXpathRiskReasons(live.getBrokenXpathRiskReasons());
             ctx.setFailureType(live.getFailureType());
 
             ctx.setPageUrl(live.getPageUrl());
@@ -46,12 +51,16 @@ public class SelfHealingContextBuilder {
             ctx.setPageRole(live.getPageRole());
 
             ctx.setElementFound(live.isElementFound());
+            ctx.setBrokenXpathValid(live.isBrokenXpathValid());
+            ctx.setBrokenXpathMatchCount(live.getBrokenXpathMatchCount());
 
             ctx.setSemanticParentHtml(live.getSemanticParentHtml());
             ctx.setSiblingElements(live.getSiblingElements());
 
             ctx.setClosestMatchingText(live.getClosestMatchingText());
             ctx.setNearbyText(live.getNearbyText());
+            ctx.setCandidateElements(live.getCandidateElements());
+            ctx.setTopCandidateXpaths(live.getTopCandidateXpaths());
 
             ctx.setStableAttributes(live.getStableAttributes());
 
@@ -77,6 +86,14 @@ public class SelfHealingContextBuilder {
             ctx.setSiblingXpaths(stored.getSiblingXpaths());
             ctx.setParentXpathChain(stored.getParentXpathChain());
             ctx.setSiblingXpathCluster(stored.getSiblingXpathCluster());
+            ctx.setElementTag(stored.getElementTag());
+            ctx.setElementRole(stored.getElementRole());
+            ctx.setElementType(stored.getElementType());
+            ctx.setNormalizedVisibleText(stored.getNormalizedVisibleText());
+            ctx.setStableAttributeJson(stored.getStableAttributeJson());
+            ctx.setVolatileAttributeJson(stored.getVolatileAttributeJson());
+            ctx.setAnchorHierarchyJson(stored.getAnchorHierarchyJson());
+            ctx.setSiblingSignatureJson(stored.getSiblingSignatureJson());
 
             ctx.setHistoricalPageUrl(stored.getPageUrl());
             ctx.setHistoricalPageTitle(stored.getPageTitle());
@@ -87,6 +104,13 @@ public class SelfHealingContextBuilder {
             ctx.setLocatorVersion(stored.getLocatorVersion());
             ctx.setHealCount(stored.getHealCount());
             ctx.setLastSimilarityScore(stored.getLastSimilarityScore());
+            ctx.setAverageValidationScore(stored.getAverageValidationScore());
+            ctx.setLocatorConfidence(stored.getLocatorConfidence());
+            ctx.setAmbiguityScore(stored.getAmbiguityScore());
+            ctx.setHealSuccessCount(stored.getHealSuccessCount());
+            ctx.setHealFailureCount(stored.getHealFailureCount());
+            ctx.setLastHealedAt(stored.getLastHealedAt());
+            ctx.setLastValidatedAt(stored.getLastValidatedAt());
 
             ctx.setCreatedAt(stored.getCreatedAt());
             ctx.setUpdatedAt(stored.getUpdatedAt());

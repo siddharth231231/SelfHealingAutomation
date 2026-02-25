@@ -27,6 +27,15 @@ public class DbExtractedData {
     private String parentDomSnapshot;
     private String siblingsDomSnapshot;
 
+    private String elementTag;
+    private String elementRole;
+    private String elementType;
+    private String normalizedVisibleText;
+    private String stableAttributeJson;
+    private String volatileAttributeJson;
+    private String anchorHierarchyJson;
+    private String siblingSignatureJson;
+
     private String pageUrl;
     private String pageTitle;
 
@@ -36,6 +45,13 @@ public class DbExtractedData {
     private Integer locatorVersion;
     private Integer healCount;
     private Double lastSimilarityScore;
+    private Double averageValidationScore;
+    private Double locatorConfidence;
+    private Double ambiguityScore;
+    private Integer healSuccessCount;
+    private Integer healFailureCount;
+    private LocalDateTime lastHealedAt;
+    private LocalDateTime lastValidatedAt;
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -78,6 +94,14 @@ public class DbExtractedData {
         data.siblingXpathCluster = entity.getSiblingXpathCluster();
         data.parentDomSnapshot = entity.getParentDomSnapshot();
         data.siblingsDomSnapshot = entity.getSiblingsDomSnapshot();
+        data.elementTag = entity.getElementTag();
+        data.elementRole = entity.getElementRole();
+        data.elementType = entity.getElementType();
+        data.normalizedVisibleText = entity.getNormalizedVisibleText();
+        data.stableAttributeJson = entity.getStableAttributeJson();
+        data.volatileAttributeJson = entity.getVolatileAttributeJson();
+        data.anchorHierarchyJson = entity.getAnchorHierarchyJson();
+        data.siblingSignatureJson = entity.getSiblingSignatureJson();
         data.pageUrl = entity.getPageUrl();
         data.pageTitle = entity.getPageTitle();
         data.domSnapshot = entity.getDomSnapshot();
@@ -85,6 +109,13 @@ public class DbExtractedData {
         data.locatorVersion = entity.getLocatorVersion();
         data.healCount = entity.getHealCount();
         data.lastSimilarityScore = entity.getLastSimilarityScore();
+        data.averageValidationScore = entity.getAverageValidationScore();
+        data.locatorConfidence = entity.getLocatorConfidence();
+        data.ambiguityScore = entity.getAmbiguityScore();
+        data.healSuccessCount = entity.getHealSuccessCount();
+        data.healFailureCount = entity.getHealFailureCount();
+        data.lastHealedAt = entity.getLastHealedAt();
+        data.lastValidatedAt = entity.getLastValidatedAt();
         data.createdAt = entity.getCreatedAt();
         data.updatedAt = entity.getUpdatedAt();
 
@@ -107,6 +138,14 @@ public class DbExtractedData {
     public String getSiblingXpathCluster() { return siblingXpathCluster; }
     public String getParentDomSnapshot() { return parentDomSnapshot; }
     public String getSiblingsDomSnapshot() { return siblingsDomSnapshot; }
+    public String getElementTag() { return elementTag; }
+    public String getElementRole() { return elementRole; }
+    public String getElementType() { return elementType; }
+    public String getNormalizedVisibleText() { return normalizedVisibleText; }
+    public String getStableAttributeJson() { return stableAttributeJson; }
+    public String getVolatileAttributeJson() { return volatileAttributeJson; }
+    public String getAnchorHierarchyJson() { return anchorHierarchyJson; }
+    public String getSiblingSignatureJson() { return siblingSignatureJson; }
     public String getPageUrl() { return pageUrl; }
     public String getPageTitle() { return pageTitle; }
     public String getDomSnapshot() { return domSnapshot; }
@@ -114,6 +153,13 @@ public class DbExtractedData {
     public Integer getLocatorVersion() { return locatorVersion; }
     public Integer getHealCount() { return healCount; }
     public Double getLastSimilarityScore() { return lastSimilarityScore; }
+    public Double getAverageValidationScore() { return averageValidationScore; }
+    public Double getLocatorConfidence() { return locatorConfidence; }
+    public Double getAmbiguityScore() { return ambiguityScore; }
+    public Integer getHealSuccessCount() { return healSuccessCount; }
+    public Integer getHealFailureCount() { return healFailureCount; }
+    public LocalDateTime getLastHealedAt() { return lastHealedAt; }
+    public LocalDateTime getLastValidatedAt() { return lastValidatedAt; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }
 }

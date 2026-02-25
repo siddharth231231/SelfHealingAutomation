@@ -29,7 +29,7 @@ public class BasePage {
         }
 
         catch (NoSuchElementException e) {
-            //String pageUrl = driver.getCurrentUrl();
+            String pageUrl = driver.getCurrentUrl();
             String locatorName = locator.getElementName();
 
             System.out.println(
@@ -40,7 +40,8 @@ public class BasePage {
             );
 
             Optional<LocatorMetaEntity> locatorStoredData =
-                    locatorMetaService.findByLocatorName(locatorName);
+                    locatorMetaService.findByPageUrlAndName(pageUrl, locatorName)
+                            .or(() -> locatorMetaService.findByLocatorName(locatorName));
 
             if (locatorStoredData.isPresent()) {
 

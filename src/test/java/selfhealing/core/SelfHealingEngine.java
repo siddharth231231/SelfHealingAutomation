@@ -5,6 +5,8 @@ import org.openqa.selenium.WebDriver;
 import selfhealing.agent.AgentRestClient;
 import selfhealing.context.SelfHealingContext;
 import selfhealing.context.SelfHealingContextBuilder;
+import selfhealing.context.analysis.BrokenXpathAnalysis;
+import selfhealing.context.analysis.BrokenXpathAnalyzer;
 import selfhealing.context.dom.DomCaptureUtil;
 import selfhealing.context.dom.DomContext;
 import selfhealing.context.storedContext.DbExtractedData;
@@ -42,6 +44,12 @@ public class SelfHealingEngine {
             return;
         }
 
+        brokenXpath = BrokenXpathAnalyzer.sanitize(brokenXpath);
+        if (brokenXpath == null || brokenXpath.trim().isEmpty()) {
+            log("XPath extracted but sanitize removed it (invalid format).");
+            return;
+        }
+
         log("Extracted XPath only: [" + brokenXpath + "]");
 
         // Log any stored DB metadata that BasePage captured for this failure
@@ -70,8 +78,9 @@ public class SelfHealingEngine {
          * 3️⃣ Derive intent from XPath (CRITICAL)
          * -------------------------------------------------
          */
-        String expectedTag = extractTagFromXpath(brokenXpath);
-        String expectedText = extractTextFromXpath(brokenXpath);
+        BrokenXpathAnalysis analysis = BrokenXpathAnalyzer.analyze(brokenXpath);
+        String expectedTag = analysis.getExpectedTag();
+        String expectedText = analysis.getExpectedText();
 
         log("Expected Tag  : " + expectedTag);
         log("Expected Text : " + expectedText);
@@ -84,14 +93,20 @@ public class SelfHealingEngine {
         DomContext domContext = DomCaptureUtil.capture(
                 driver,
                 stored,
-                exception);
+                exception,
+                brokenXpath);
 
         // Propagate intent fields that the richer DomCaptureUtil doesn't set
         // automatically
         if (domContext != null) {
             domContext.setBrokenXpath(brokenXpath);
+            domContext.setNormalizedBrokenXpath(analysis.getNormalizedXpath());
             domContext.setExpectedTag(expectedTag);
             domContext.setExpectedText(expectedText);
+            domContext.setExpectedAttributes(analysis.getExpectedAttributes());
+            domContext.setBrokenXpathDepth(analysis.getDepth());
+            domContext.setBrokenXpathDynamicRiskScore(analysis.getDynamicRiskScore());
+            domContext.setBrokenXpathRiskReasons(analysis.getRiskReasons());
         }
 
         if (domContext == null) {
@@ -158,30 +173,6 @@ public class SelfHealingEngine {
      * INTENT EXTRACTION HELPERS (SIMPLE & SAFE)
      * =================================================
      */
-
-    private static String extractTagFromXpath(String xpath) {
-
-        try {
-            String cleaned = xpath.replaceAll("^//+", "");
-            return cleaned.split("[\\[/]")[0];
-        } catch (Exception e) {
-            return "*";
-        }
-    }
-
-    private static String extractTextFromXpath(String xpath) {
-        // Extract text()='something'
-        try {
-            int start = xpath.indexOf("text()='");
-            if (start == -1)
-                return null;
-            start += 8;
-            int end = xpath.indexOf("'", start);
-            return end > start ? xpath.substring(start, end) : null;
-        } catch (Exception e) {
-            return null;
-        }
-    }
 
     /*
      * -------------------------------------------------
