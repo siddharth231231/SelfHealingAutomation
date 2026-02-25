@@ -6,6 +6,7 @@ import com.yourcompany.selfhealing.service.LocatorMetaService;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import selfhealing.context.storedContext.DbExtractedData;
 import selfhealing.locator.NamedBy;
 
 import java.util.Optional;
@@ -46,11 +47,18 @@ public class BasePage {
                 LocatorMetaEntity storedData = locatorStoredData.get();
 
                 System.out.println("======= DB RECORD FOUND =======");
-                System.out.println(storedData.toString());   // 🔥 Prints EVERYTHING
+                System.out.println(storedData.toString());   // full entity
+
+                // Focused log for parent & sibling information
+                System.out.println("--- Parent & Sibling from DB ---");
+                System.out.println("Parent XPath        : " + storedData.getParentXpath());
+                System.out.println("Parent XPath Chain  : " + storedData.getParentXpathChain());
+                System.out.println("Sibling XPaths      : " + storedData.getSiblingXpaths());
+                System.out.println("Sibling XPathCluster: " + storedData.getSiblingXpathCluster());
                 System.out.println("================================");
 
-
-
+                // Populate shared stored context for DOM capture
+                DbExtractedData.set(DbExtractedData.fromEntity(storedData));
 
             } else {
                 System.out.println("No DB record found for this locator.");

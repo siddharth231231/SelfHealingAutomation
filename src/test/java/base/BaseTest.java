@@ -41,15 +41,15 @@ public class BaseTest {
     public void setup() {
         WebDriver webDriver = new ChromeDriver();
         driver.set(webDriver);
-        webDriver.get("https://www.google.com");
+        webDriver.get("https://opensource-demo.orangehrmlive.com/web/index.php/auth/login");
     }
 
     @AfterMethod(alwaysRun = true)
     public void tearDown() {
-        WebDriver webDriver = driver.get();
-        if (webDriver != null) {
-            webDriver.quit();
-            driver.remove();
-        }
-    }
+//        WebDriver webDriver = driver.get();
+//        if (webDriver != null) {
+//            webDriver.quit();
+//            driver.remove();
+//        }
+  }
 }
