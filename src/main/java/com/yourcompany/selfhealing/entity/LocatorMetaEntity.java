@@ -42,6 +42,12 @@ public class LocatorMetaEntity {
     @Column(name = "css_selector", columnDefinition = "TEXT")
     private String cssSelector;
 
+    @Column(name = "parent_xpath", columnDefinition = "TEXT")
+    private String parentXpath;
+
+    @Column(name = "sibling_xpaths", columnDefinition = "LONGTEXT")
+    private String siblingXpaths;
+
     @Column(name = "parent_xpath_chain", columnDefinition = "LONGTEXT")
     private String parentXpathChain;
 
@@ -130,6 +136,12 @@ public class LocatorMetaEntity {
     public String getCssSelector() { return cssSelector; }
     public void setCssSelector(String cssSelector) { this.cssSelector = cssSelector; }
 
+    public String getParentXpath() { return parentXpath; }
+    public void setParentXpath(String parentXpath) { this.parentXpath = parentXpath; }
+
+    public String getSiblingXpaths() { return siblingXpaths; }
+    public void setSiblingXpaths(String siblingXpaths) { this.siblingXpaths = siblingXpaths; }
+
     public String getParentXpathChain() { return parentXpathChain; }
     public void setParentXpathChain(String parentXpathChain) { this.parentXpathChain = parentXpathChain; }
 
@@ -169,6 +181,8 @@ public class LocatorMetaEntity {
                 ", relativeXpath='" + relativeXpath + '\'' +
                 ", absoluteXpath='" + absoluteXpath + '\'' +
                 ", cssSelector='" + cssSelector + '\'' +
+                ", parentXpath='" + parentXpath + '\'' +
+                ", siblingXpaths='" + siblingXpaths + '\'' +
                 ", parentXpathChain='" + parentXpathChain + '\'' +
                 ", siblingXpathCluster='" + siblingXpathCluster + '\'' +
                 ", pageUrl='" + pageUrl + '\'' +
