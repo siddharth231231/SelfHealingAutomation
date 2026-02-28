@@ -1,6 +1,7 @@
 package listeners;
 
 import base.BaseTest;
+import config.FrameworkConfig;
 import org.openqa.selenium.WebDriver;
 import org.testng.ITestListener;
 import org.testng.ITestResult;
@@ -10,6 +11,10 @@ public class SelfHealingListener implements ITestListener {
 
     @Override
     public void onTestFailure(ITestResult result) {
+
+        if (!FrameworkConfig.isSelfHealingEnabled()) {
+            return;
+        }
 
         Throwable exception = result.getThrowable();
 

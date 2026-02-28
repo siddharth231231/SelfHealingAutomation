@@ -3,9 +3,11 @@ package tests.pages;
 
 import com.yourcompany.selfhealing.entity.LocatorMetaEntity;
 import com.yourcompany.selfhealing.service.LocatorMetaService;
+import config.FrameworkConfig;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import selfhealing.context.dom.ElementSnapshotUtil;
 import selfhealing.context.storedContext.DbExtractedData;
 import selfhealing.locator.NamedBy;
 
@@ -25,7 +27,23 @@ public class BasePage {
     protected WebElement find(NamedBy locator) {
 
         try {
-            return driver.findElement(locator.getBy());
+            WebElement element = driver.findElement(locator.getBy());
+
+            if (FrameworkConfig.isCaptureOnFirstRun()) {
+                String pageUrl = driver.getCurrentUrl();
+                String locatorName = locator.getElementName();
+                boolean exists = locatorMetaService.exists(pageUrl, locatorName);
+                if (!exists) {
+                    LocatorMetaEntity entity = ElementSnapshotUtil.buildEntity(
+                            driver,
+                            element,
+                            locatorName,
+                            locator.getBy().toString());
+                    locatorMetaService.saveIfNotExists(entity);
+                }
+            }
+
+            return element;
         }
 
         catch (NoSuchElementException e) {
