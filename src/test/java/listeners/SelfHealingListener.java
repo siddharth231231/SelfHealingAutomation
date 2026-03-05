@@ -1,11 +1,8 @@
 package listeners;
 
-import base.BaseTest;
 import config.FrameworkConfig;
-import org.openqa.selenium.WebDriver;
 import org.testng.ITestListener;
 import org.testng.ITestResult;
-import selfhealing.core.SelfHealingEngine;
 
 public class SelfHealingListener implements ITestListener {
 
@@ -22,24 +19,21 @@ public class SelfHealingListener implements ITestListener {
             return;
         }
 
-        // ✅ Correct way to fetch driver when using WebDriverManager + ThreadLocal
-        WebDriver driver = BaseTest.getDriver();
-
-        if (driver == null) {
-            System.out.println("❌ WebDriver is NULL. Self-healing cannot proceed.");
-            return;
-        }
-
-        SelfHealingEngine.heal(
-                driver,
-                exception,
-                result.getName()
+        // V2 healing executes inline in BasePage.find(...), so listener is now
+        // informational only.
+        System.out.println(
+                "[SELF-HEALING] Test failed after inline healing pipeline. test="
+                        + result.getName()
         );
     }
 
     private boolean isLocatorFailure(Throwable exception) {
+        if (exception == null) {
+            return false;
+        }
         return exception instanceof org.openqa.selenium.NoSuchElementException
+                || exception instanceof org.openqa.selenium.InvalidSelectorException
                 || exception instanceof org.openqa.selenium.TimeoutException
-                || exception.getCause() instanceof org.openqa.selenium.NoSuchElementException;
+                || (exception.getCause() instanceof org.openqa.selenium.NoSuchElementException);
     }
 }
