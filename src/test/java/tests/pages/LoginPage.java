@@ -9,14 +9,21 @@ public class LoginPage extends BasePage {
 
     /* ================= LOCATORS ================= */
 
-    private final NamedBy Obj_LoginBtn =
-            new NamedBy("Obj_LoginBtn",
-                    By.xpath("//button[@type='submit and Save']"));
+    private final NamedBy Obj_Sustainablebusiness_Btn =
+            new NamedBy("Obj_Sustainablebusiness_Btn",
+                    By.xpath("//a[@aria-label='Link to Sustainable']"));
 
-//    private final NamedBy Obj_RejectCoockies =
-//            new NamedBy("Obj_RejectCoockies",
-//                    By.xpath("//button[contains(text(),'Reject All')]"));
+    private final NamedBy Obj_RejectCoockies =
+            new NamedBy("Obj_RejectCoockies",
+                    By.xpath("//button[@id='abc']"));
 
+    private final NamedBy Obj_VbButton =
+            new NamedBy("Obj_VBBtn",
+                    By.xpath("//a[text()='Vodafone' and@ title='nbvvnbvb']"));
+
+    private final NamedBy Obj_InvestorBtnNavbar =
+            new NamedBy("Obj_InvestorBtnNavbar",
+                    By.xpath("//span[text()='Stakeholder']"));
 
 
 
@@ -31,7 +38,10 @@ public class LoginPage extends BasePage {
 
     public void loginTestOrangeHRM() {
 
-        find(Obj_LoginBtn).click();
+        click(Obj_RejectCoockies);
+       // click(Obj_InvestorBtnNavbar);
+       // click(Obj_Sustainablebusiness_Btn);
+
 
 
     }

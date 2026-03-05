@@ -1,89 +1,124 @@
 package tests.pages;
 
-
-import com.yourcompany.selfhealing.entity.LocatorMetaEntity;
 import com.yourcompany.selfhealing.service.LocatorMetaService;
 import config.FrameworkConfig;
+import org.openqa.selenium.ElementNotInteractableException;
+import org.openqa.selenium.InvalidSelectorException;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.NoSuchElementException;
+import org.openqa.selenium.StaleElementReferenceException;
+import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import selfhealing.context.dom.ElementSnapshotUtil;
-import selfhealing.context.storedContext.DbExtractedData;
+import org.openqa.selenium.interactions.Actions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+import selfhealing.capture.CaptureInterceptor;
+import selfhealing.core.SelfHealingEngine;
 import selfhealing.locator.NamedBy;
 
-import java.util.Optional;
+import java.time.Duration;
 
 public class BasePage {
 
-    protected WebDriver driver;
-    protected LocatorMetaService locatorMetaService;
+    protected final WebDriver driver;
+    protected final LocatorMetaService locatorMetaService;
 
-    public BasePage(WebDriver driver,
-                    LocatorMetaService locatorMetaService) {
+    public BasePage(WebDriver driver, LocatorMetaService locatorMetaService) {
         this.driver = driver;
         this.locatorMetaService = locatorMetaService;
     }
 
     protected WebElement find(NamedBy locator) {
-
         try {
             WebElement element = driver.findElement(locator.getBy());
+            if (FrameworkConfig.isHealingCaptureEnabled()) {
+                CaptureInterceptor.capture(driver, element, locator, locatorMetaService);
+            }
+            return element;
+        } catch (NoSuchElementException | InvalidSelectorException failure) {
+            if (FrameworkConfig.isHealingModeEnabled()) {
+                return SelfHealingEngine.heal(driver, locator, locatorMetaService, failure);
+            }
+            throw failure;
+        }
+    }
 
-            if (FrameworkConfig.isCaptureOnFirstRun()) {
-                String pageUrl = driver.getCurrentUrl();
-                String locatorName = locator.getElementName();
-                boolean exists = locatorMetaService.exists(pageUrl, locatorName);
-                if (!exists) {
-                    LocatorMetaEntity entity = ElementSnapshotUtil.buildEntity(
-                            driver,
-                            element,
-                            locatorName,
-                            locator.getBy().toString());
-                    locatorMetaService.saveIfNotExists(entity);
+    protected void click(NamedBy locator) {
+        RuntimeException lastFailure = null;
+        int maxAttempts = Math.max(2, FrameworkConfig.getHealingRetryMax());
+
+        for (int attempt = 1; attempt <= maxAttempts; attempt++) {
+            WebElement element = find(locator);
+            try {
+                scrollIntoView(element);
+                waitUntilInteractable(element, Duration.ofSeconds(5));
+                element.click();
+                return;
+            } catch (ElementNotInteractableException
+                     | StaleElementReferenceException
+                     | TimeoutException e) {
+
+                lastFailure = wrap(locator, attempt, e);
+
+                if (tryActionsClick(element)) {
+                    return;
+                }
+                if (tryJsClick(element)) {
+                    return;
                 }
             }
-
-            return element;
         }
 
-        catch (NoSuchElementException e) {
-            String pageUrl = driver.getCurrentUrl();
-            String locatorName = locator.getElementName();
+        if (lastFailure != null) {
+            throw lastFailure;
+        }
+        throw new RuntimeException("Click failed for locator: " + locator.getElementName());
+    }
 
-            System.out.println(
-                    "\n======= LOCATOR FAILURE =======\n" +
-                            "Element Name : " + locator.getElementName() + "\n" +
-                            "Locator      : " + locator.getBy() + "\n" +
-                            "================================"
-            );
-
-            Optional<LocatorMetaEntity> locatorStoredData =
-                    locatorMetaService.findByPageUrlAndName(pageUrl, locatorName)
-                            .or(() -> locatorMetaService.findByLocatorName(locatorName));
-
-            if (locatorStoredData.isPresent()) {
-
-                LocatorMetaEntity storedData = locatorStoredData.get();
-
-                System.out.println("======= DB RECORD FOUND =======");
-                System.out.println(storedData.toString());   // full entity
-
-                // Focused log for parent & sibling information
-                System.out.println("--- Parent & Sibling from DB ---");
-                System.out.println("Parent XPath        : " + storedData.getParentXpath());
-                System.out.println("Parent XPath Chain  : " + storedData.getParentXpathChain());
-                System.out.println("Sibling XPaths      : " + storedData.getSiblingXpaths());
-                System.out.println("Sibling XPathCluster: " + storedData.getSiblingXpathCluster());
-                System.out.println("================================");
-
-                // Populate shared stored context for DOM capture
-                DbExtractedData.set(DbExtractedData.fromEntity(storedData));
-
-            } else {
-                System.out.println("No DB record found for this locator.");
+    private void waitUntilInteractable(WebElement element, Duration timeout) {
+        WebDriverWait wait = new WebDriverWait(driver, timeout);
+        wait.until(d -> {
+            try {
+                return element != null && element.isDisplayed() && element.isEnabled();
+            } catch (StaleElementReferenceException ignored) {
+                return false;
             }
+        });
+    }
 
-            throw e;
+    private void scrollIntoView(WebElement element) {
+        try {
+            ((JavascriptExecutor) driver).executeScript(
+                    "arguments[0].scrollIntoView({block:'center', inline:'nearest'});",
+                    element
+            );
+        } catch (Exception ignored) {
+            // best effort
         }
+    }
+
+    private boolean tryActionsClick(WebElement element) {
+        try {
+            new Actions(driver).moveToElement(element).pause(Duration.ofMillis(100)).click().perform();
+            return true;
+        } catch (Exception ignored) {
+            return false;
+        }
+    }
+
+    private boolean tryJsClick(WebElement element) {
+        try {
+            ((JavascriptExecutor) driver).executeScript("arguments[0].click();", element);
+            return true;
+        } catch (Exception ignored) {
+            return false;
+        }
+    }
+
+    private RuntimeException wrap(NamedBy locator, int attempt, Exception cause) {
+        return new RuntimeException(
+                "Click failed for locator " + locator.getElementName() + " on attempt " + attempt,
+                cause
+        );
     }
 }

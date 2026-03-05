@@ -11,7 +11,6 @@ import java.time.LocalDateTime;
         ),
         indexes = {
                 @Index(name = "idx_locator_name", columnList = "locator_name"),
-                @Index(name = "idx_page_url", columnList = "page_url"),
                 @Index(name = "idx_dom_hash", columnList = "dom_hash"),
                 @Index(name = "idx_heal_count", columnList = "heal_count"),
                 @Index(name = "idx_updated_at", columnList = "updated_at")
@@ -86,10 +85,38 @@ public class LocatorMetaEntity {
     private String siblingSignatureJson;
 
     // ===============================
+    // V2 Tiered Capture
+    // ===============================
+
+    @Column(name = "element_fingerprint_json", columnDefinition = "LONGTEXT")
+    private String elementFingerprintJson;
+
+    @Column(name = "structural_fingerprint_json", columnDefinition = "LONGTEXT")
+    private String structuralFingerprintJson;
+
+    @Column(name = "node_path_json", columnDefinition = "LONGTEXT")
+    private String nodePathJson;
+
+    @Column(name = "semantic_path", columnDefinition = "TEXT")
+    private String semanticPath;
+
+    @Column(name = "data_testid", length = 255)
+    private String dataTestId;
+
+    @Column(name = "parent_tag", length = 100)
+    private String parentTag;
+
+    @Column(name = "parent_id", length = 255)
+    private String parentId;
+
+    @Column(name = "parent_class", length = 255)
+    private String parentClass;
+
+    // ===============================
     // Page Context
     // ===============================
 
-    @Column(name = "page_url", length = 1024)
+    @Column(name = "page_url", length = 500)
     private String pageUrl;
 
     @Column(name = "page_title")
@@ -224,6 +251,32 @@ public class LocatorMetaEntity {
     public String getSiblingSignatureJson() { return siblingSignatureJson; }
     public void setSiblingSignatureJson(String siblingSignatureJson) { this.siblingSignatureJson = siblingSignatureJson; }
 
+    public String getElementFingerprintJson() { return elementFingerprintJson; }
+    public void setElementFingerprintJson(String elementFingerprintJson) { this.elementFingerprintJson = elementFingerprintJson; }
+
+    public String getStructuralFingerprintJson() { return structuralFingerprintJson; }
+    public void setStructuralFingerprintJson(String structuralFingerprintJson) {
+        this.structuralFingerprintJson = structuralFingerprintJson;
+    }
+
+    public String getNodePathJson() { return nodePathJson; }
+    public void setNodePathJson(String nodePathJson) { this.nodePathJson = nodePathJson; }
+
+    public String getSemanticPath() { return semanticPath; }
+    public void setSemanticPath(String semanticPath) { this.semanticPath = semanticPath; }
+
+    public String getDataTestId() { return dataTestId; }
+    public void setDataTestId(String dataTestId) { this.dataTestId = dataTestId; }
+
+    public String getParentTag() { return parentTag; }
+    public void setParentTag(String parentTag) { this.parentTag = parentTag; }
+
+    public String getParentId() { return parentId; }
+    public void setParentId(String parentId) { this.parentId = parentId; }
+
+    public String getParentClass() { return parentClass; }
+    public void setParentClass(String parentClass) { this.parentClass = parentClass; }
+
     // Backward-compatible aliases used by older test/context mappers.
     public String getParentDomSnapshot() { return parentXpathChain; }
     public void setParentDomSnapshot(String parentDomSnapshot) { this.parentXpathChain = parentDomSnapshot; }
@@ -297,6 +350,14 @@ public class LocatorMetaEntity {
                 ", volatileAttributeJson='" + volatileAttributeJson + '\'' +
                 ", anchorHierarchyJson='" + anchorHierarchyJson + '\'' +
                 ", siblingSignatureJson='" + siblingSignatureJson + '\'' +
+                ", elementFingerprintJson='" + elementFingerprintJson + '\'' +
+                ", structuralFingerprintJson='" + structuralFingerprintJson + '\'' +
+                ", nodePathJson='" + nodePathJson + '\'' +
+                ", semanticPath='" + semanticPath + '\'' +
+                ", dataTestId='" + dataTestId + '\'' +
+                ", parentTag='" + parentTag + '\'' +
+                ", parentId='" + parentId + '\'' +
+                ", parentClass='" + parentClass + '\'' +
                 ", pageUrl='" + pageUrl + '\'' +
                 ", pageTitle='" + pageTitle + '\'' +
                 ", domSnapshot='" + domSnapshot + '\'' +

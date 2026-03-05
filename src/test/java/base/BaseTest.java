@@ -64,7 +64,7 @@ public class BaseTest {
         // ✅ Add implicit wait (5 sec)
         webDriver.manage().timeouts().implicitlyWait(Duration.ofSeconds(5));
 
-        webDriver.get("https://opensource-demo.orangehrmlive.com/web/index.php/auth/login");
+        webDriver.get("https://www.vodafone.com/");
         //webDriver.findElement(By.xpath("//button[contains(text(),'Reject All')]")).click();
     }
 
