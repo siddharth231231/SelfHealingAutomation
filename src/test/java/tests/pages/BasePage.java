@@ -11,10 +11,14 @@ import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.interactions.Actions;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.FluentWait;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import selfhealing.capture.CaptureInterceptor;
 import selfhealing.core.SelfHealingEngine;
 import selfhealing.locator.NamedBy;
+import selfhealing.metrics.SelfHealingMetrics;
+import selfhealing.retry.SmartRetryEngine;
 
 import java.time.Duration;
 
@@ -29,8 +33,11 @@ public class BasePage {
     }
 
     protected WebElement find(NamedBy locator) {
+        SelfHealingMetrics.incrementLocatorUsed();
+
         try {
-            WebElement element = driver.findElement(locator.getBy());
+            //retry mechanism
+            WebElement element = SmartRetryEngine.tryFindWithRetries(driver, locator.getBy());
             if (FrameworkConfig.isHealingCaptureEnabled()) {
                 CaptureInterceptor.capture(driver, element, locator, locatorMetaService);
             }
@@ -44,46 +51,18 @@ public class BasePage {
     }
 
     protected void click(NamedBy locator) {
-        RuntimeException lastFailure = null;
-        int maxAttempts = Math.max(2, FrameworkConfig.getHealingRetryMax());
-
-        for (int attempt = 1; attempt <= maxAttempts; attempt++) {
-            WebElement element = find(locator);
-            try {
+                WebElement element = find(locator);
                 scrollIntoView(element);
                 waitUntilInteractable(element, Duration.ofSeconds(5));
                 element.click();
-                return;
-            } catch (ElementNotInteractableException
-                     | StaleElementReferenceException
-                     | TimeoutException e) {
 
-                lastFailure = wrap(locator, attempt, e);
 
-                if (tryActionsClick(element)) {
-                    return;
-                }
-                if (tryJsClick(element)) {
-                    return;
-                }
-            }
-        }
-
-        if (lastFailure != null) {
-            throw lastFailure;
-        }
-        throw new RuntimeException("Click failed for locator: " + locator.getElementName());
     }
 
     private void waitUntilInteractable(WebElement element, Duration timeout) {
         WebDriverWait wait = new WebDriverWait(driver, timeout);
-        wait.until(d -> {
-            try {
-                return element != null && element.isDisplayed() && element.isEnabled();
-            } catch (StaleElementReferenceException ignored) {
-                return false;
-            }
-        });
+        wait.ignoring(StaleElementReferenceException.class)
+                .until(d -> element != null && element.isDisplayed() && element.isEnabled());
     }
 
     private void scrollIntoView(WebElement element) {

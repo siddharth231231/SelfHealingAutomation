@@ -3,7 +3,6 @@ package base;
 import com.yourcompany.selfhealing.SelfHealingApplication;
 import com.yourcompany.selfhealing.service.LocatorMetaService;
 import config.FrameworkConfig;
-import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
@@ -48,24 +47,21 @@ public class BaseTest {
 
         ChromeOptions options = new ChromeOptions();
 
-        // ✅ Disable cookies
+        // Disable cookies
         options.addArguments("--disable-cookies");
 
-        // (Optional but recommended for automation stability)
         options.addArguments("--disable-notifications");
         options.addArguments("--start-maximized"); // Alternative way to maximize
 
         WebDriver webDriver = new ChromeDriver(options);
         driver.set(webDriver);
 
-        // ✅ If you prefer explicit maximize instead of argument:
         webDriver.manage().window().maximize();
 
-        // ✅ Add implicit wait (5 sec)
+
         webDriver.manage().timeouts().implicitlyWait(Duration.ofSeconds(5));
 
         webDriver.get("https://www.vodafone.com/");
-        //webDriver.findElement(By.xpath("//button[contains(text(),'Reject All')]")).click();
     }
 
     @AfterMethod(alwaysRun = true)

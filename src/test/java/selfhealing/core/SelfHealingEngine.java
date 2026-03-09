@@ -3,6 +3,8 @@ package selfhealing.core;
 import com.yourcompany.selfhealing.entity.LocatorMetaEntity;
 import com.yourcompany.selfhealing.service.LocatorMetaService;
 import config.FrameworkConfig;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -12,9 +14,13 @@ import selfhealing.healing.HealeniumAlgorithmService;
 import selfhealing.healing.HealeniumSuggestion;
 import selfhealing.healing.LiveDomData;
 import selfhealing.healing.LiveDomExtractor;
+import selfhealing.healing.XPathCandidateGenerator;
 import selfhealing.healing.ValidationGate;
+import selfhealing.metrics.SelfHealingMetrics;
+import selfhealing.reporting.HealingReportLogger;
 import selfhealing.locator.NamedBy;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -25,6 +31,7 @@ import java.util.Set;
 public final class SelfHealingEngine {
 
     private static final int SUGGESTION_PREVIEW_LIMIT = 12;
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     private SelfHealingEngine() {
     }
@@ -40,7 +47,9 @@ public final class SelfHealingEngine {
         }
 
         String pageUrl = PageUrlUtil.normalize(driver.getCurrentUrl());
+
         String locatorName = locator.getElementName();
+
         log("====================================================");
         log("Healing started. locator=" + locatorName + ", pageUrl=" + pageUrl);
 
@@ -50,6 +59,8 @@ public final class SelfHealingEngine {
                         "No capture found for locatorName=" + locatorName + " pageUrl=" + pageUrl));
         logStoredSnapshot(stored);
 
+        long healingStart = System.nanoTime();
+
         int maxAttempts = FrameworkConfig.getHealingRetryMax();
         String finalReason = "All healing attempts failed.";
 
@@ -58,11 +69,6 @@ public final class SelfHealingEngine {
             LiveDomData live = LiveDomExtractor.extract(driver, stored);
             logLiveSnapshot(live);
 
-            // Temporarily disabled: Step-2 hash gate (DOM unchanged -> skip healing).
-            // Keeping logs so we can re-enable later without losing observability.
-            if (sameHash(stored.getDomHash(), live.getLiveNeighborhoodHash())) {
-                log("Step-2 hash check matched, but skip gate is DISABLED temporarily. Continuing healing.");
-            }
 
             HealeniumSuggestion healenium = HealeniumAlgorithmService.suggest(
                     stored.getNodePathJson(),
@@ -80,7 +86,7 @@ public final class SelfHealingEngine {
                     locator
             );
 
-            // Required behavior: call AI for every failure/attempt.
+
             List<String> aiSuggestions = AgentRestClient.requestHealing(
                     request,
                     FrameworkConfig.getHealingSpringAiUrl()
@@ -131,6 +137,20 @@ public final class SelfHealingEngine {
                         healenium.getXpath(),
                         healenium.getScore()
                 );
+                Duration duration = Duration.ofNanos(System.nanoTime() - healingStart);
+                SelfHealingMetrics.recordHealingSuccess(duration);
+                HealingReportLogger.logHealingSuccess(
+                        locatorName,
+                        extractByValue(locator.getBy().toString()),
+                        selectedXpath,
+                        healenium.getXpath(),
+                        healenium.getScore(),
+                        rankedSuggestions.getSourceByXpath().get(selectedXpath),
+                        attempt,
+                        live.getLiveNeighborhoodHash(),
+                        duration
+                );
+                HealingReportLogger.attachHealingScreenshot(driver);
                 log("Healing SUCCESS on attempt " + attempt + ".");
                 log("====================================================");
                 return healedElement;
@@ -152,6 +172,7 @@ public final class SelfHealingEngine {
         }
 
         locatorMetaService.incrementHealingFailure(pageUrl, locatorName);
+        SelfHealingMetrics.recordHealingFailure();
         log("Healing FAILED after max attempts. Reason=" + finalReason);
         log("====================================================");
         throw new HealingFailedException(finalReason, failure);
@@ -181,6 +202,7 @@ public final class SelfHealingEngine {
         request.setLiveDomRelevantHtml(live.getCleanedDom());
         request.setHealeniumSuggestedXpath(healenium.getXpath());
         request.setHealeniumScore(healenium.getScore());
+        request.setHealeniumHintXpath(healenium.getXpath());
         return request;
     }
 
@@ -211,6 +233,9 @@ public final class SelfHealingEngine {
         }
         addSuggestion(unique, sourceByXpath, healeniumXpath, "healenium");
 
+        // Healenium-style reconstructed candidates from stored node path
+        addGeneratedFromStored(unique, sourceByXpath, stored);
+
         if (stored != null) {
             addSuggestion(unique, sourceByXpath, stored.getCurrentActiveLocator(), "stored.currentActiveLocator");
             addSuggestion(unique, sourceByXpath, stored.getRelativeXpath(), "stored.relativeXpath");
@@ -239,6 +264,29 @@ public final class SelfHealingEngine {
         }
 
         return new RankedSuggestions(new ArrayList<>(unique), sourceByXpath);
+    }
+
+    private static void addGeneratedFromStored(
+            Set<String> unique,
+            Map<String, String> sourceByXpath,
+            LocatorMetaEntity stored) {
+        if (stored == null || !notBlank(stored.getNodePathJson())) {
+            return;
+        }
+        try {
+            Map<String, Object> nodePath = OBJECT_MAPPER.readValue(
+                    stored.getNodePathJson(), new TypeReference<Map<String, Object>>() {});
+            Map<String, String> attrs = OBJECT_MAPPER.readValue(
+                    stored.getElementFingerprintJson(), new TypeReference<Map<String, String>>() {});
+            List<String> generated = XPathCandidateGenerator.generate(nodePath, attrs);
+            int rank = 1;
+            for (String xpath : generated) {
+                addSuggestion(unique, sourceByXpath, xpath, "healenium.generated#" + rank);
+                rank++;
+            }
+        } catch (Exception ignore) {
+            // do not fail healing if reconstruction fails
+        }
     }
 
     private static void addSuggestion(

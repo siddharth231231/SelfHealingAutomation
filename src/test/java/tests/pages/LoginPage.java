@@ -15,8 +15,8 @@ public class LoginPage extends BasePage {
 
     private final NamedBy Obj_RejectCoockies =
             new NamedBy("Obj_RejectCoockies",
-                    By.xpath("//button[@id='abc']"));
-
+                    By.xpath("//button[text()='deny All']"));
+//button[text()='Reject All']
     private final NamedBy Obj_VbButton =
             new NamedBy("Obj_VBBtn",
                     By.xpath("//a[text()='Vodafone' and@ title='nbvvnbvb']"));
@@ -36,13 +36,8 @@ public class LoginPage extends BasePage {
 
     /* ================= PAGE ACTIONS ================= */
 
-    public void loginTestOrangeHRM() {
-
+    public void LoginVodafone() {
         click(Obj_RejectCoockies);
-       // click(Obj_InvestorBtnNavbar);
-       // click(Obj_Sustainablebusiness_Btn);
-
-
 
     }
 
