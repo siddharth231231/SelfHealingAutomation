@@ -38,9 +38,7 @@ public class LocatorMetaService {
                 .orElseGet(() -> locatorRepo.save(locator));
     }
 
-    /**
-     * V2 upsert: skip DB write when structural DOM hash is unchanged.
-     */
+
     public LocatorMetaEntity upsertIfDomChanged(LocatorMetaEntity incoming) {
         Optional<LocatorMetaEntity> existingOpt =
                 locatorRepo.findByPageUrlAndLocatorName(incoming.getPageUrl(), incoming.getLocatorName());
