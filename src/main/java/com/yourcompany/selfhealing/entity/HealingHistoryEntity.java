@@ -1,6 +1,7 @@
 package com.yourcompany.selfhealing.entity;
 
 import jakarta.persistence.*;
+import jakarta.persistence.Lob;
 
 import java.time.LocalDateTime;
 
@@ -15,7 +16,12 @@ import java.time.LocalDateTime;
 public class HealingHistoryEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @SequenceGenerator(
+            name = "healing_history_seq",
+            sequenceName = "HEALING_HISTORY_SEQ",
+            allocationSize = 1
+    )
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "healing_history_seq")
     private Long id;
 
     @Column(name = "locator_name", nullable = false)
@@ -30,16 +36,20 @@ public class HealingHistoryEntity {
     @Column(name = "status", length = 32)
     private String status;
 
-    @Column(name = "failure_reason", columnDefinition = "TEXT")
+    @Lob
+    @Column(name = "failure_reason")
     private String failureReason;
 
-    @Column(name = "ai_suggestions_json", columnDefinition = "LONGTEXT")
+    @Lob
+    @Column(name = "ai_suggestions_json")
     private String aiSuggestionsJson;
 
-    @Column(name = "selected_xpath", columnDefinition = "TEXT")
+    @Lob
+    @Column(name = "selected_xpath")
     private String selectedXpath;
 
-    @Column(name = "healenium_xpath", columnDefinition = "TEXT")
+    @Lob
+    @Column(name = "healenium_xpath")
     private String healeniumXpath;
 
     @Column(name = "healenium_score")
