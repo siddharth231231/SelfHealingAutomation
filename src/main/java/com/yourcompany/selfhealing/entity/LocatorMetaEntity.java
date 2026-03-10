@@ -1,6 +1,7 @@
 package com.yourcompany.selfhealing.entity;
 
 import jakarta.persistence.*;
+import jakarta.persistence.Lob;
 import java.time.LocalDateTime;
 
 @Entity
@@ -19,7 +20,12 @@ import java.time.LocalDateTime;
 public class LocatorMetaEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @SequenceGenerator(
+            name = "locator_meta_seq",
+            sequenceName = "LOCATOR_META_SEQ",
+            allocationSize = 1
+    )
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "locator_meta_seq")
     private Long id;
 
     // ===============================
@@ -29,35 +35,44 @@ public class LocatorMetaEntity {
     @Column(name = "locator_name", nullable = false)
     private String locatorName;
 
-    @Column(name = "original_locator", columnDefinition = "TEXT", nullable = false)
+    @Lob
+    @Column(name = "original_locator", nullable = false)
     private String originalLocator;
 
-    @Column(name = "current_active_locator", columnDefinition = "TEXT")
+    @Lob
+    @Column(name = "current_active_locator")
     private String currentActiveLocator;
 
     // ===============================
     // Multiple Locator Anchors
     // ===============================
 
-    @Column(name = "relative_xpath", columnDefinition = "TEXT")
+    @Lob
+    @Column(name = "relative_xpath")
     private String relativeXpath;
 
-    @Column(name = "absolute_xpath", columnDefinition = "TEXT")
+    @Lob
+    @Column(name = "absolute_xpath")
     private String absoluteXpath;
 
-    @Column(name = "css_selector", columnDefinition = "TEXT")
+    @Lob
+    @Column(name = "css_selector")
     private String cssSelector;
 
-    @Column(name = "parent_xpath", columnDefinition = "TEXT")
+    @Lob
+    @Column(name = "parent_xpath")
     private String parentXpath;
 
-    @Column(name = "sibling_xpaths", columnDefinition = "LONGTEXT")
+    @Lob
+    @Column(name = "sibling_xpaths")
     private String siblingXpaths;
 
-    @Column(name = "parent_xpath_chain", columnDefinition = "LONGTEXT")
+    @Lob
+    @Column(name = "parent_xpath_chain")
     private String parentXpathChain;
 
-    @Column(name = "sibling_xpath_cluster", columnDefinition = "LONGTEXT")
+    @Lob
+    @Column(name = "sibling_xpath_cluster")
     private String siblingXpathCluster;
 
     @Column(name = "element_tag", length = 100)
@@ -69,35 +84,44 @@ public class LocatorMetaEntity {
     @Column(name = "element_type", length = 100)
     private String elementType;
 
-    @Column(name = "normalized_visible_text", columnDefinition = "TEXT")
+    @Lob
+    @Column(name = "normalized_visible_text")
     private String normalizedVisibleText;
 
-    @Column(name = "stable_attribute_json", columnDefinition = "LONGTEXT")
+    @Lob
+    @Column(name = "stable_attribute_json")
     private String stableAttributeJson;
 
-    @Column(name = "volatile_attribute_json", columnDefinition = "LONGTEXT")
+    @Lob
+    @Column(name = "volatile_attribute_json")
     private String volatileAttributeJson;
 
-    @Column(name = "anchor_hierarchy_json", columnDefinition = "LONGTEXT")
+    @Lob
+    @Column(name = "anchor_hierarchy_json")
     private String anchorHierarchyJson;
 
-    @Column(name = "sibling_signature_json", columnDefinition = "LONGTEXT")
+    @Lob
+    @Column(name = "sibling_signature_json")
     private String siblingSignatureJson;
 
     // ===============================
     // V2 Tiered Capture
     // ===============================
 
-    @Column(name = "element_fingerprint_json", columnDefinition = "LONGTEXT")
+    @Lob
+    @Column(name = "element_fingerprint_json")
     private String elementFingerprintJson;
 
-    @Column(name = "structural_fingerprint_json", columnDefinition = "LONGTEXT")
+    @Lob
+    @Column(name = "structural_fingerprint_json")
     private String structuralFingerprintJson;
 
-    @Column(name = "node_path_json", columnDefinition = "LONGTEXT")
+    @Lob
+    @Column(name = "node_path_json")
     private String nodePathJson;
 
-    @Column(name = "semantic_path", columnDefinition = "TEXT")
+    @Lob
+    @Column(name = "semantic_path")
     private String semanticPath;
 
     @Column(name = "data_testid", length = 255)
@@ -126,7 +150,8 @@ public class LocatorMetaEntity {
     // DOM Snapshot (Healenium Style)
     // ===============================
 
-    @Column(name = "dom_snapshot", columnDefinition = "LONGTEXT")
+    @Lob
+    @Column(name = "dom_snapshot")
     private String domSnapshot;
 
     @Column(name = "dom_hash", length = 255)
